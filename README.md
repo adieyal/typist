@@ -3,7 +3,8 @@
 **An adaptive typing trainer that learns your weak spots and makes you practice them.**
 
 <p align="center">
-  <a href="https://typist.github.io"><strong>🚀 Try it live → typist.github.io</strong></a>
+  🚀 Try it live → 
+  <a href="https://adieyal.github.io/typist/"><strong>https://adieyal.github.io/typist/</strong></a>
 </p>
 
 ---
