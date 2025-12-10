@@ -1,0 +1,3317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Speed Test - Difficulty Trainer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #1a1a2e;
+            color: #eee;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .difficulty-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-control label {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .mode-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .mode-select {
+            background: #252540;
+            color: #eee;
+            border: 2px solid #444;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .mode-select:hover {
+            border-color: #646cff;
+        }
+
+        .mode-select:focus {
+            outline: none;
+            border-color: #646cff;
+        }
+
+        .mode-select option {
+            background: #1a1a2e;
+            color: #eee;
+        }
+
+        .hard-mode-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            display: none;
+        }
+
+        .checkbox-custom {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #555;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .checkbox-wrapper:hover .checkbox-custom {
+            border-color: #f87171;
+        }
+
+        .checkbox-wrapper input:checked + .checkbox-custom {
+            background: #f87171;
+            border-color: #f87171;
+        }
+
+        .checkbox-wrapper input:checked + .checkbox-custom.audio {
+            background: #4ade80;
+            border-color: #4ade80;
+        }
+
+        .checkbox-wrapper:hover .checkbox-custom.audio {
+            border-color: #4ade80;
+        }
+
+        .checkbox-wrapper input:checked ~ .checkbox-label {
+            color: #f87171;
+        }
+
+        .audio-checkbox input:checked ~ .checkbox-label {
+            color: #4ade80 !important;
+        }
+
+        .checkbox-wrapper input:checked + .checkbox-custom::after {
+            content: "✓";
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .checkbox-label {
+            color: #888;
+            font-size: 0.9rem;
+            user-select: none;
+        }
+
+        .checkbox-wrapper:hover .checkbox-label {
+            color: #f87171;
+        }
+
+        .checkbox-wrapper input:checked ~ .checkbox-label {
+            color: #f87171;
+        }
+
+        .hard-mode-info {
+            font-size: 0.75rem;
+            color: #666;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        .word-color-legend {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            font-size: 0.75rem;
+            color: #666;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .word-color-legend .legend-title {
+            color: #888;
+        }
+
+        .word-color-legend .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .word-color-legend .color-sample {
+            font-weight: bold;
+        }
+
+        .hard-mode-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .trigram-badge {
+            background: #333;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .trigram-badge.weak {
+            background: rgba(248, 113, 113, 0.2);
+            color: #f87171;
+        }
+
+        .difficulty-slider {
+            width: 200px;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .difficulty-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #646cff;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .difficulty-slider::-webkit-slider-thumb:hover {
+            background: #7c83ff;
+        }
+
+        .difficulty-value {
+            color: #646cff;
+            font-weight: bold;
+            min-width: 40px;
+        }
+
+        .generate-btn {
+            background: #646cff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .generate-btn:hover {
+            background: #7c83ff;
+        }
+
+        .language-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+
+        .language-indicator::before {
+            content: "◉";
+            color: #646cff;
+        }
+
+        .text-display {
+            font-size: 1.6rem;
+            line-height: 2;
+            letter-spacing: 0.05em;
+            margin-bottom: 40px;
+            min-height: 150px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0;
+            padding: 20px;
+        }
+
+        .text-display.code-mode {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            justify-content: flex-start;
+            text-align: left;
+            background: #0d0d1a;
+            border-radius: 8px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            display: block;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .char {
+            color: #555;
+            transition: color 0.1s;
+            white-space: pre;
+        }
+
+        .char.error-colored {
+            /* Color is set inline based on error rate */
+            transition: color 0.1s, text-shadow 0.1s;
+        }
+
+        .char.correct {
+            color: #4ade80 !important;
+        }
+
+        .char.incorrect {
+            color: #f87171 !important;
+            text-decoration: underline;
+        }
+
+        .char.current {
+            background: rgba(100, 108, 255, 0.3);
+            border-radius: 2px;
+        }
+
+        .char.newline-char {
+            color: #444;
+            font-size: 0.8em;
+        }
+
+        .char.newline-char.correct {
+            color: #4ade80;
+        }
+
+        .char.newline-char.incorrect {
+            color: #f87171;
+        }
+
+        .code-line {
+            display: block;
+            min-height: 1.6em;
+            white-space: pre;
+        }
+
+        .char.indent-space {
+            color: #333;
+        }
+
+        .char.indent-space::before {
+            content: '·';
+            color: #333;
+        }
+
+        .char.indent-space.correct::before {
+            color: #4ade80;
+        }
+
+        .char.indent-space.incorrect::before {
+            color: #f87171;
+        }
+
+        .char.tab-char {
+            color: #444;
+            display: inline-block;
+            width: 2em;
+        }
+
+        .char.tab-char::before {
+            content: '→';
+        }
+
+        .char.tab-char.correct::before {
+            color: #4ade80;
+        }
+
+        .char.tab-char.incorrect::before {
+            color: #f87171;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #646cff;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .progress-bar {
+            width: 100%;
+            max-width: 400px;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            margin: 0 auto 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #646cff, #4ade80);
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        .instructions {
+            color: #555;
+            font-size: 0.85rem;
+            margin-top: 20px;
+        }
+
+        .instructions kbd {
+            background: #333;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .hidden-input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .results-panel {
+            background: #252540;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results-panel.visible {
+            display: block;
+        }
+
+        .results-panel h2 {
+            color: #4ade80;
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 20px;
+        }
+
+        .result-item {
+            text-align: center;
+        }
+
+        .result-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #eee;
+        }
+
+        .result-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .difficulty-info {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .charts-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid #333;
+        }
+
+        .charts-section h2 {
+            color: #888;
+            font-weight: 300;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-wrapper {
+            background: #252540;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .chart-wrapper h3 {
+            color: #aaa;
+            font-size: 0.9rem;
+            font-weight: 400;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .chart {
+            position: relative;
+            height: 250px;
+            border-left: 2px solid #444;
+            border-bottom: 2px solid #444;
+            margin-left: 40px;
+            margin-bottom: 30px;
+        }
+
+        .chart-point {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            transform: translate(-50%, 50%);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .chart-point:hover {
+            transform: translate(-50%, 50%) scale(1.5);
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .chart-point.wpm {
+            background: #646cff;
+            color: #646cff;
+        }
+
+        .chart-point.wpm.hard-mode {
+            background: #f87171;
+            color: #f87171;
+        }
+
+        .chart-point.accuracy {
+            background: #4ade80;
+            color: #4ade80;
+        }
+
+        .chart-point.accuracy.hard-mode {
+            background: #f87171;
+            color: #f87171;
+        }
+
+        .chart-tooltip {
+            position: absolute;
+            background: #1a1a2e;
+            border: 1px solid #444;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            pointer-events: none;
+            z-index: 100;
+            white-space: nowrap;
+            display: none;
+        }
+
+        .y-axis-label {
+            position: absolute;
+            left: -35px;
+            font-size: 0.7rem;
+            color: #666;
+            transform: translateY(50%);
+        }
+
+        .x-axis-label {
+            position: absolute;
+            bottom: -25px;
+            font-size: 0.7rem;
+            color: #666;
+            transform: translateX(-50%);
+        }
+
+        .axis-title {
+            position: absolute;
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        .axis-title.y-title {
+            left: -40px;
+            top: 50%;
+            transform: rotate(-90deg) translateX(-50%);
+            transform-origin: left center;
+        }
+
+        .axis-title.x-title {
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .trend-line {
+            position: absolute;
+            height: 2px;
+            transform-origin: left center;
+            opacity: 0.5;
+        }
+
+        .trend-line.wpm {
+            background: #646cff;
+        }
+
+        .trend-line.accuracy {
+            background: #4ade80;
+        }
+
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.wpm {
+            background: #646cff;
+        }
+
+        .legend-dot.accuracy {
+            background: #4ade80;
+        }
+
+        .legend-dot.hard-mode {
+            background: #f87171;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .summary-card {
+            background: #252540;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .summary-card .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #646cff;
+        }
+
+        .summary-card .label {
+            font-size: 0.7rem;
+            color: #666;
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        .history-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .history-btn {
+            background: #333;
+            color: #888;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.8rem;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .history-btn:hover {
+            background: #444;
+            color: #eee;
+        }
+
+        .history-btn.danger:hover {
+            background: #dc2626;
+            color: white;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #555;
+            padding: 40px;
+            font-size: 0.9rem;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.85rem;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+        }
+
+        .history-table th {
+            color: #888;
+            font-weight: 400;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+        }
+
+        .history-table td {
+            color: #ccc;
+        }
+
+        .history-table tr:hover td {
+            background: #252540;
+        }
+
+        .state-waiting .text-display {
+            cursor: pointer;
+        }
+
+        .state-complete .char.correct {
+            color: #4ade80;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .state-waiting .instructions {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="app">
+        <div class="header">
+            <h1>Typing Difficulty Trainer</h1>
+        </div>
+
+        <div class="mode-control">
+            <label>Mode:</label>
+            <select class="mode-select" id="modeSelect">
+                <option value="english">English Text</option>
+                <option value="cpp">C++ Code</option>
+                <option value="python">Python Code</option>
+            </select>
+        </div>
+
+        <div class="difficulty-control">
+            <label>Difficulty:</label>
+            <input type="range" class="difficulty-slider" id="difficultySlider" min="0" max="100" value="30">
+            <span class="difficulty-value" id="difficultyValue">0.30</span>
+            <button class="generate-btn" id="generateBtn">Generate</button>
+        </div>
+
+        <div class="hard-mode-control">
+            <label class="checkbox-wrapper">
+                <input type="checkbox" id="hardModeCheckbox">
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-label">🎯 Hard Mode: Target Weak Trigrams</span>
+            </label>
+            <label class="checkbox-wrapper audio-checkbox">
+                <input type="checkbox" id="audioCheckbox">
+                <span class="checkbox-custom audio"></span>
+                <span class="checkbox-label">🔊 Audio Feedback</span>
+            </label>
+            <div class="hard-mode-stats" id="hardModeStats">
+                <span>Trigrams learned: <strong id="trigramsLearned">0</strong></span>
+                <span>Weakest: <span class="trigram-badge weak" id="weakestTrigram">---</span></span>
+            </div>
+        </div>
+
+        <div class="hard-mode-info" id="hardModeInfo" style="display: none; margin: 0 auto 20px;">
+            Generating sentences with your most error-prone letter combinations. 
+            Exploration rate: <strong id="explorationRate">30%</strong>
+        </div>
+
+        <div class="word-color-legend" id="wordColorLegend">
+            <span class="legend-title">Word colors:</span>
+            <span class="legend-item"><span class="color-sample" style="color: #555;">gray</span> = no data</span>
+            <span class="legend-item"><span class="color-sample" style="color: rgb(100, 255, 100);">green</span> = few errors</span>
+            <span class="legend-item"><span class="color-sample" style="color: rgb(255, 200, 100);">yellow</span> = some errors</span>
+            <span class="legend-item"><span class="color-sample" style="color: rgb(255, 100, 100);">red</span> = many errors</span>
+        </div>
+
+        <div class="language-indicator" id="languageIndicator">english</div>
+
+        <div class="text-display" id="textDisplay" tabindex="0"></div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="stat-value" id="wpmStat">0</div>
+                <div class="stat-label" id="wpmLabel">WPM</div>
+            </div>
+            <div class="stat" id="cpmStatContainer" style="display: none;">
+                <div class="stat-value" id="cpmStat">0</div>
+                <div class="stat-label">CPM</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="accuracyStat">100%</div>
+                <div class="stat-label">Accuracy</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="progressStat">0%</div>
+                <div class="stat-label">Progress</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="timeStat">0.0s</div>
+                <div class="stat-label">Time</div>
+            </div>
+        </div>
+
+        <div class="instructions" id="instructions">
+            Start typing to begin...
+        </div>
+
+        <div class="results-panel" id="resultsPanel">
+            <h2>✓ Complete!</h2>
+            <div class="results-grid">
+                <div class="result-item">
+                    <div class="result-value" id="finalWpm">0</div>
+                    <div class="result-label" id="finalWpmLabel">Words/Min</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="finalCpm">0</div>
+                    <div class="result-label">Chars/Min</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="finalAccuracy">0%</div>
+                    <div class="result-label">Accuracy</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="finalTime">0s</div>
+                    <div class="result-label">Time</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="finalErrors">0</div>
+                    <div class="result-label">Errors</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="finalChars">0</div>
+                    <div class="result-label">Characters</div>
+                </div>
+            </div>
+            <div class="difficulty-info" id="difficultyInfo"></div>
+        </div>
+
+        <input type="text" class="hidden-input" id="hiddenInput" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+
+        <!-- Charts Section -->
+        <div class="charts-section" id="chartsSection">
+            <h2>Performance History</h2>
+            
+            <div class="charts-container">
+                <div class="chart-wrapper">
+                    <h3>Difficulty vs Speed (WPM)</h3>
+                    <div class="chart" id="wpmChart">
+                        <span class="axis-title y-title">WPM</span>
+                        <span class="axis-title x-title">Difficulty</span>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot wpm"></div>
+                            <span>Normal mode</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot hard-mode"></div>
+                            <span>Hard mode</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-wrapper">
+                    <h3>Difficulty vs Accuracy</h3>
+                    <div class="chart" id="accuracyChart">
+                        <span class="axis-title y-title">Accuracy %</span>
+                        <span class="axis-title x-title">Difficulty</span>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot accuracy"></div>
+                            <span>Normal mode</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot hard-mode"></div>
+                            <span>Hard mode</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-summary" id="statsSummary">
+                <div class="summary-card">
+                    <div class="value" id="totalTests">0</div>
+                    <div class="label">Total Tests</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value" id="avgWpm">0</div>
+                    <div class="label">Avg WPM</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value" id="avgAccuracy">0%</div>
+                    <div class="label">Avg Accuracy</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value" id="bestWpm">0</div>
+                    <div class="label">Best WPM</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value" id="avgDifficulty">0.00</div>
+                    <div class="label">Avg Difficulty</div>
+                </div>
+                <div class="summary-card">
+                    <div class="value" id="totalTime">0s</div>
+                    <div class="label">Total Time</div>
+                </div>
+            </div>
+
+            <div class="history-controls">
+                <button class="history-btn" id="exportBtn">Export Data (CSV)</button>
+                <button class="history-btn danger" id="clearBtn">Clear History</button>
+            </div>
+
+            <table class="history-table" id="historyTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Mode</th>
+                        <th>Difficulty</th>
+                        <th>WPM</th>
+                        <th>Accuracy</th>
+                        <th>Time</th>
+                        <th>Errors</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // AUDIO ENGINE - Pleasant typing feedback
+        // ============================================
+
+        class AudioEngine {
+            constructor() {
+                this.enabled = false;
+                this.audioContext = null;
+                this.masterGain = null;
+                
+                // Pentatonic scale frequencies (always sounds pleasant)
+                // C major pentatonic across 2 octaves
+                this.pentatonicScale = [
+                    261.63, // C4
+                    293.66, // D4
+                    329.63, // E4
+                    392.00, // G4
+                    440.00, // A4
+                    523.25, // C5
+                    587.33, // D5
+                    659.25, // E5
+                    783.99, // G5
+                    880.00, // A5
+                ];
+                
+                // Error sound - dissonant but not harsh
+                this.errorFreq = 185.00; // F#3 - slightly off from the scale
+            }
+
+            init() {
+                if (this.audioContext) return;
+                
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    this.masterGain = this.audioContext.createGain();
+                    this.masterGain.gain.value = 0.15; // Keep it subtle
+                    this.masterGain.connect(this.audioContext.destination);
+                } catch (e) {
+                    console.warn('Web Audio API not supported');
+                    this.enabled = false;
+                }
+            }
+
+            enable() {
+                this.init();
+                this.enabled = true;
+                // Resume audio context if suspended (browser autoplay policy)
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    this.audioContext.resume();
+                }
+            }
+
+            disable() {
+                this.enabled = false;
+            }
+
+            // Play a pleasant tone based on trigram difficulty
+            // difficulty: 0 (easy) to 1 (hard)
+            playTone(difficulty, isCorrect = true) {
+                if (!this.enabled || !this.audioContext) return;
+
+                const now = this.audioContext.currentTime;
+
+                if (!isCorrect) {
+                    // Error sound - lower, slightly dissonant
+                    this.playErrorTone(now);
+                    return;
+                }
+
+                // Map difficulty to pentatonic scale index
+                // Easy = low notes, Hard = high notes
+                const scaleIndex = Math.floor(difficulty * (this.pentatonicScale.length - 1));
+                const frequency = this.pentatonicScale[Math.min(scaleIndex, this.pentatonicScale.length - 1)];
+
+                // Create oscillator with warm tone (sine + subtle harmonics)
+                const osc = this.audioContext.createOscillator();
+                const oscGain = this.audioContext.createGain();
+                
+                // Add subtle harmonics for warmth
+                const osc2 = this.audioContext.createOscillator();
+                const osc2Gain = this.audioContext.createGain();
+
+                // Main tone - sine wave
+                osc.type = 'sine';
+                osc.frequency.value = frequency;
+
+                // Harmonic - one octave up, very quiet
+                osc2.type = 'sine';
+                osc2.frequency.value = frequency * 2;
+                osc2Gain.gain.value = 0.15; // Much quieter than fundamental
+
+                // ADSR-like envelope for pleasant attack/decay
+                // Quick soft attack, gentle decay
+                oscGain.gain.setValueAtTime(0, now);
+                oscGain.gain.linearRampToValueAtTime(0.3, now + 0.02); // Quick attack
+                oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.15); // Gentle decay
+
+                osc2Gain.gain.setValueAtTime(0, now);
+                osc2Gain.gain.linearRampToValueAtTime(0.05, now + 0.02);
+                osc2Gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+                // Connect
+                osc.connect(oscGain);
+                oscGain.connect(this.masterGain);
+                
+                osc2.connect(osc2Gain);
+                osc2Gain.connect(this.masterGain);
+
+                // Play
+                osc.start(now);
+                osc2.start(now);
+                osc.stop(now + 0.2);
+                osc2.stop(now + 0.15);
+            }
+
+            playErrorTone(now) {
+                // Create a softer error sound - not jarring
+                const osc = this.audioContext.createOscillator();
+                const oscGain = this.audioContext.createGain();
+                
+                // Triangle wave for softer error tone
+                osc.type = 'triangle';
+                osc.frequency.value = this.errorFreq;
+
+                // Quick attack, medium decay
+                oscGain.gain.setValueAtTime(0, now);
+                oscGain.gain.linearRampToValueAtTime(0.25, now + 0.01);
+                oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+
+                osc.connect(oscGain);
+                oscGain.connect(this.masterGain);
+
+                osc.start(now);
+                osc.stop(now + 0.25);
+            }
+
+            // Play completion sound - ascending arpeggio
+            playComplete() {
+                if (!this.enabled || !this.audioContext) return;
+
+                const now = this.audioContext.currentTime;
+                const notes = [0, 2, 4, 5, 7]; // Pentatonic arpeggio indices
+
+                notes.forEach((noteIndex, i) => {
+                    const delay = i * 0.08;
+                    const freq = this.pentatonicScale[noteIndex];
+                    
+                    const osc = this.audioContext.createOscillator();
+                    const oscGain = this.audioContext.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+
+                    oscGain.gain.setValueAtTime(0, now + delay);
+                    oscGain.gain.linearRampToValueAtTime(0.2, now + delay + 0.02);
+                    oscGain.gain.exponentialRampToValueAtTime(0.01, now + delay + 0.3);
+
+                    osc.connect(oscGain);
+                    oscGain.connect(this.masterGain);
+
+                    osc.start(now + delay);
+                    osc.stop(now + delay + 0.35);
+                });
+            }
+        }
+
+        // ============================================
+        // TRIGRAM LEARNER - Tracks mistakes and learns weak patterns
+        // ============================================
+
+        class TrigramLearner {
+            constructor() {
+                this.storageKey = 'typingTrigramData';
+                this.data = this.loadData();
+                this.explorationRate = 0.3; // 30% exploration, 70% exploitation
+            }
+
+            loadData() {
+                try {
+                    const stored = localStorage.getItem(this.storageKey);
+                    return stored ? JSON.parse(stored) : {
+                        trigrams: {},      // trigram -> { errors: n, attempts: n, lastSeen: timestamp }
+                        words: {},         // word -> { errors: n, attempts: n, lastSeen: timestamp }
+                        totalAttempts: 0
+                    };
+                } catch (e) {
+                    return { trigrams: {}, words: {}, totalAttempts: 0 };
+                }
+            }
+
+            saveData() {
+                try {
+                    localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+                } catch (e) {
+                    console.warn('Could not save trigram data');
+                }
+            }
+
+            // Record typing results for a sentence
+            recordResults(sentence, errorPositions) {
+                const now = Date.now();
+                const words = sentence.toLowerCase().split(/\s+/);
+                
+                // Track word-level errors
+                let charIndex = 0;
+                for (const word of words) {
+                    const wordStart = charIndex;
+                    const wordEnd = charIndex + word.length;
+                    const wordErrors = errorPositions.filter(p => p >= wordStart && p < wordEnd).length;
+                    
+                    if (!this.data.words[word]) {
+                        this.data.words[word] = { errors: 0, attempts: 0, lastSeen: now };
+                    }
+                    this.data.words[word].attempts++;
+                    this.data.words[word].errors += wordErrors;
+                    this.data.words[word].lastSeen = now;
+                    
+                    charIndex = wordEnd + 1; // +1 for space
+                }
+
+                // Track trigram-level errors
+                const fullText = sentence.toLowerCase();
+                for (let i = 0; i < fullText.length - 2; i++) {
+                    const trigram = fullText.substring(i, i + 3);
+                    if (!/^[a-z ]{3}$/.test(trigram)) continue; // Only track letter/space trigrams
+                    
+                    if (!this.data.trigrams[trigram]) {
+                        this.data.trigrams[trigram] = { errors: 0, attempts: 0, lastSeen: now };
+                    }
+                    
+                    this.data.trigrams[trigram].attempts++;
+                    
+                    // Check if any error occurred in this trigram's position
+                    if (errorPositions.includes(i) || errorPositions.includes(i + 1) || errorPositions.includes(i + 2)) {
+                        this.data.trigrams[trigram].errors++;
+                    }
+                    this.data.trigrams[trigram].lastSeen = now;
+                }
+
+                this.data.totalAttempts++;
+                this.saveData();
+            }
+
+            // Get error rate for a trigram (with UCB-style exploration bonus)
+            getTrigramScore(trigram, forExploration = false) {
+                const data = this.data.trigrams[trigram];
+                
+                if (!data || data.attempts === 0) {
+                    // Unknown trigram - high exploration value
+                    return forExploration ? 1.0 : 0.5;
+                }
+
+                const errorRate = data.errors / data.attempts;
+                
+                if (forExploration) {
+                    // UCB-style: Add exploration bonus for less-tested trigrams
+                    const explorationBonus = Math.sqrt(2 * Math.log(this.data.totalAttempts + 1) / data.attempts);
+                    return Math.min(1, errorRate + explorationBonus * 0.5);
+                }
+                
+                return errorRate;
+            }
+
+            // Get word difficulty based on its trigrams and historical errors
+            getWordDifficulty(word) {
+                const w = word.toLowerCase();
+                let score = 0;
+                let count = 0;
+
+                // Trigram-based score
+                for (let i = 0; i < w.length - 2; i++) {
+                    const trigram = w.substring(i, i + 3);
+                    score += this.getTrigramScore(trigram);
+                    count++;
+                }
+
+                // Include word-level historical performance
+                if (this.data.words[w] && this.data.words[w].attempts > 0) {
+                    const wordErrorRate = this.data.words[w].errors / (this.data.words[w].attempts * w.length);
+                    score += wordErrorRate * 3; // Weight word history more heavily
+                    count++;
+                }
+
+                return count > 0 ? score / count : 0.5;
+            }
+
+            // Get the weakest trigrams (highest error rate)
+            getWeakestTrigrams(n = 10) {
+                const trigrams = Object.entries(this.data.trigrams)
+                    .filter(([_, data]) => data.attempts >= 2) // Need some data
+                    .map(([trigram, data]) => ({
+                        trigram,
+                        errorRate: data.errors / data.attempts,
+                        attempts: data.attempts
+                    }))
+                    .sort((a, b) => b.errorRate - a.errorRate)
+                    .slice(0, n);
+                
+                return trigrams;
+            }
+
+            // Get statistics for UI display
+            getStats() {
+                const trigramCount = Object.keys(this.data.trigrams).length;
+                const weakest = this.getWeakestTrigrams(1);
+                const weakestTrigram = weakest.length > 0 ? weakest[0].trigram : '---';
+                const weakestRate = weakest.length > 0 ? (weakest[0].errorRate * 100).toFixed(0) + '%' : '';
+                
+                return {
+                    trigramCount,
+                    weakestTrigram,
+                    weakestRate,
+                    totalAttempts: this.data.totalAttempts
+                };
+            }
+
+            // Get error rate for a specific word (0-1, where 1 = always errors)
+            getWordErrorRate(word) {
+                const w = word.toLowerCase().replace(/[^a-z]/g, '');
+                const wordData = this.data.words[w];
+                
+                if (!wordData || wordData.attempts === 0) {
+                    return 0; // No data = assume no errors
+                }
+                
+                // Calculate error rate normalized by word length
+                // errors is total character errors, attempts is times word was typed
+                const expectedTotalChars = wordData.attempts * w.length;
+                const errorRate = Math.min(1, wordData.errors / expectedTotalChars);
+                
+                return errorRate;
+            }
+
+            // Get color for word based on error rate (green -> yellow -> red)
+            getWordColor(word) {
+                const errorRate = this.getWordErrorRate(word);
+                
+                if (errorRate === 0) {
+                    return null; // No data, use default color
+                }
+                
+                // Interpolate from green (0 errors) -> yellow (0.3) -> red (0.6+)
+                if (errorRate < 0.1) {
+                    // Low error rate - greenish
+                    const g = Math.floor(180 + (75 * (1 - errorRate / 0.1)));
+                    return `rgb(100, ${g}, 100)`;
+                } else if (errorRate < 0.3) {
+                    // Medium error rate - yellow
+                    const t = (errorRate - 0.1) / 0.2;
+                    const r = Math.floor(100 + 155 * t);
+                    const g = Math.floor(255 - 55 * t);
+                    return `rgb(${r}, ${g}, 100)`;
+                } else {
+                    // High error rate - orange to red
+                    const t = Math.min(1, (errorRate - 0.3) / 0.3);
+                    const g = Math.floor(200 * (1 - t));
+                    return `rgb(255, ${g}, 100)`;
+                }
+            }
+
+            // Clear all learned data
+            clearData() {
+                this.data = { trigrams: {}, words: {}, totalAttempts: 0 };
+                this.saveData();
+            }
+        }
+
+        // ============================================
+        // MARKOV CHAIN & DIFFICULTY SCORING ENGINE
+        // ============================================
+
+        class MarkovModel {
+            constructor() {
+                // Letter bigram frequencies (trained on English text)
+                // These are log probabilities for common transitions
+                this.letterBigrams = this.buildLetterBigrams();
+                this.wordBigrams = this.buildWordBigrams();
+                this.commonWords = this.buildWordList();
+            }
+
+            buildLetterBigrams() {
+                // Simplified letter transition probabilities based on English
+                // Format: P(second | first) as relative frequencies
+                const common = {
+                    'th': 50, 'he': 48, 'in': 42, 'er': 40, 'an': 38,
+                    'on': 35, 'en': 33, 're': 32, 'ed': 30, 'nd': 28,
+                    'at': 27, 'ou': 26, 'to': 25, 'it': 24, 'is': 23,
+                    'es': 22, 'or': 21, 'ti': 20, 'as': 19, 'te': 18,
+                    'et': 17, 'ng': 16, 'of': 15, 'al': 14, 'de': 13,
+                    'se': 12, 'le': 11, 'sa': 10, 'si': 10, 'ar': 10,
+                    'nt': 10, 've': 9, 'ra': 9, 'ea': 9, 'ri': 9,
+                    'ne': 8, 'io': 8, 'co': 8, 'me': 8, 'st': 8,
+                    'ha': 7, 'hi': 7, 'ma': 7, 'ce': 7, 'ec': 7,
+                    'ly': 7, 'll': 7, 'no': 7, 'ro': 6, 'wa': 6,
+                    'ge': 6, 'pe': 6, 'ur': 6, 'us': 6, 'be': 6,
+                    'ca': 6, 'di': 6, 'fo': 6, 'ho': 6, 'li': 6,
+                    'lo': 6, 'mo': 6, 'om': 6, 'ow': 6, 'pa': 6,
+                    'po': 6, 'pr': 6, 'so': 6, 'ta': 6, 'un': 6,
+                    'wh': 6, 'wi': 6, 'wo': 6, 'yo': 6, 'ch': 5,
+                    'sh': 5, 'tr': 5, 'do': 5, 'go': 5, 'we': 5,
+                    'la': 5, 'ac': 5, 'ad': 5, 'ag': 5, 'ai': 5,
+                    'am': 5, 'ap': 5, 'av': 5, 'ay': 5, 'bl': 4,
+                    'br': 4, 'cl': 4, 'cr': 4, 'dr': 4, 'fl': 4,
+                    'fr': 4, 'gl': 4, 'gr': 4, 'pl': 4, 'sc': 4,
+                    'sk': 4, 'sl': 4, 'sm': 4, 'sn': 4, 'sp': 4,
+                    'sw': 4, 'tw': 4, 'wr': 3, 'qu': 3, 'ex': 3,
+                    'ck': 5, 'gh': 3, 'ph': 3, 'oo': 4, 'ee': 4,
+                    'tt': 3, 'ss': 3, 'ff': 2, 'rr': 2, 'nn': 2,
+                    'mm': 2, 'pp': 2, 'bb': 1, 'dd': 1, 'gg': 1,
+                    'kn': 2, 'wr': 2, 'ps': 1, 'pn': 1, 'gn': 1,
+                    ' t': 20, ' a': 18, ' s': 15, ' w': 12, ' i': 12,
+                    ' o': 10, ' b': 10, ' c': 10, ' f': 10, ' h': 10,
+                    ' m': 8, ' p': 8, ' d': 8, ' l': 6, ' n': 5,
+                    ' g': 5, ' r': 4, ' e': 4, ' y': 3, ' u': 3,
+                    ' v': 3, ' j': 2, ' k': 2, ' q': 1, ' z': 1,
+                    ' x': 1,
+                    'e ': 20, 's ': 18, 't ': 15, 'd ': 14, 'n ': 12,
+                    'y ': 10, 'r ': 10, 'f ': 8, 'l ': 8, 'a ': 6,
+                    'o ': 5, 'g ': 5, 'w ': 4, 'k ': 4, 'm ': 4,
+                    'p ': 3, 'h ': 2
+                };
+
+                // Normalize to probabilities
+                const bigrams = {};
+                const totals = {};
+
+                for (const [pair, freq] of Object.entries(common)) {
+                    const first = pair[0];
+                    if (!totals[first]) totals[first] = 0;
+                    totals[first] += freq;
+                }
+
+                for (const [pair, freq] of Object.entries(common)) {
+                    const first = pair[0];
+                    bigrams[pair] = freq / totals[first];
+                }
+
+                return bigrams;
+            }
+
+            buildWordBigrams() {
+                // Common word transitions
+                const transitions = {
+                    'the': ['quick', 'big', 'small', 'old', 'new', 'good', 'best', 'first', 'last', 'great', 'man', 'way', 'day', 'time', 'year', 'world', 'life', 'hand', 'part', 'place'],
+                    'a': ['big', 'small', 'good', 'new', 'great', 'little', 'long', 'man', 'few', 'lot'],
+                    'to': ['be', 'have', 'do', 'say', 'get', 'make', 'go', 'know', 'take', 'see', 'come', 'think', 'look', 'want', 'give', 'use', 'find', 'tell', 'ask', 'work'],
+                    'and': ['the', 'a', 'i', 'it', 'he', 'she', 'we', 'they', 'this', 'that'],
+                    'of': ['the', 'a', 'his', 'her', 'their', 'our', 'its', 'this', 'that', 'my'],
+                    'in': ['the', 'a', 'his', 'her', 'their', 'our', 'this', 'that', 'my', 'order'],
+                    'is': ['a', 'the', 'not', 'it', 'this', 'that', 'what', 'there', 'one', 'very'],
+                    'it': ['is', 'was', 'will', 'would', 'can', 'could', 'has', 'had', 'seems', 'looks'],
+                    'for': ['the', 'a', 'this', 'that', 'his', 'her', 'their', 'our', 'my', 'all'],
+                    'was': ['a', 'the', 'not', 'very', 'so', 'too', 'just', 'still', 'also', 'only'],
+                    'on': ['the', 'a', 'his', 'her', 'their', 'my', 'this', 'that', 'one', 'top'],
+                    'with': ['the', 'a', 'his', 'her', 'their', 'my', 'this', 'that', 'all', 'each'],
+                    'he': ['was', 'is', 'had', 'has', 'would', 'could', 'will', 'did', 'said', 'thought'],
+                    'be': ['a', 'the', 'able', 'used', 'seen', 'done', 'made', 'found', 'said', 'given'],
+                    'at': ['the', 'a', 'his', 'her', 'their', 'my', 'this', 'that', 'all', 'least'],
+                    'by': ['the', 'a', 'his', 'her', 'their', 'my', 'this', 'that', 'all', 'far'],
+                    'i': ['am', 'was', 'have', 'had', 'will', 'would', 'can', 'could', 'think', 'know'],
+                    'you': ['are', 'were', 'have', 'had', 'will', 'would', 'can', 'could', 'know', 'want'],
+                    'we': ['are', 'were', 'have', 'had', 'will', 'would', 'can', 'could', 'need', 'must'],
+                    'they': ['are', 'were', 'have', 'had', 'will', 'would', 'can', 'could', 'say', 'want'],
+                    'from': ['the', 'a', 'his', 'her', 'their', 'my', 'this', 'that', 'all', 'one'],
+                    'or': ['the', 'a', 'not', 'other', 'more', 'less', 'any', 'some', 'even', 'just'],
+                    'have': ['a', 'the', 'to', 'been', 'not', 'no', 'any', 'some', 'more', 'all'],
+                    'an': ['old', 'important', 'interesting', 'easy', 'open', 'early', 'end', 'idea', 'issue', 'example'],
+                    'but': ['the', 'i', 'it', 'he', 'she', 'we', 'they', 'not', 'also', 'still'],
+                    'not': ['be', 'have', 'only', 'just', 'yet', 'all', 'even', 'so', 'very', 'too'],
+                    'what': ['is', 'was', 'are', 'were', 'do', 'did', 'will', 'would', 'can', 'could'],
+                    'all': ['the', 'of', 'that', 'this', 'over', 'around', 'about', 'along', 'right', 'day'],
+                    'were': ['not', 'very', 'so', 'too', 'just', 'still', 'also', 'only', 'there', 'here'],
+                    'when': ['the', 'i', 'it', 'he', 'she', 'we', 'they', 'you', 'a', 'there'],
+                    'your': ['own', 'first', 'best', 'new', 'old', 'life', 'work', 'time', 'way', 'hand'],
+                    'can': ['be', 'have', 'do', 'make', 'get', 'see', 'find', 'help', 'also', 'only'],
+                    'there': ['is', 'are', 'was', 'were', 'will', 'would', 'has', 'have', 'had', 'be'],
+                    'each': ['other', 'one', 'day', 'year', 'time', 'word', 'person', 'side', 'part', 'step'],
+                    'which': ['is', 'was', 'are', 'were', 'will', 'would', 'can', 'could', 'has', 'had'],
+                    'their': ['own', 'first', 'new', 'best', 'way', 'time', 'work', 'life', 'children', 'eyes'],
+                    'if': ['you', 'the', 'it', 'he', 'she', 'we', 'they', 'there', 'this', 'that'],
+                    'will': ['be', 'have', 'do', 'make', 'get', 'take', 'come', 'go', 'see', 'find'],
+                    'how': ['to', 'the', 'it', 'he', 'she', 'we', 'they', 'much', 'many', 'long'],
+                    'about': ['the', 'a', 'it', 'this', 'that', 'his', 'her', 'what', 'how', 'to'],
+                    'up': ['to', 'the', 'and', 'with', 'in', 'on', 'for', 'a', 'his', 'her'],
+                    'out': ['of', 'the', 'to', 'and', 'in', 'on', 'a', 'his', 'her', 'there'],
+                    'many': ['of', 'people', 'years', 'times', 'ways', 'things', 'other', 'different', 'more', 'such'],
+                    'then': ['the', 'i', 'it', 'he', 'she', 'we', 'they', 'a', 'there', 'came'],
+                    'them': ['to', 'in', 'and', 'the', 'a', 'up', 'out', 'with', 'as', 'all'],
+                    'would': ['be', 'have', 'like', 'not', 'make', 'take', 'come', 'go', 'see', 'say'],
+                    'like': ['the', 'a', 'to', 'this', 'that', 'it', 'him', 'her', 'them', 'me'],
+                    'so': ['much', 'many', 'that', 'the', 'i', 'it', 'he', 'she', 'we', 'they'],
+                    'these': ['are', 'were', 'have', 'will', 'would', 'can', 'could', 'include', 'things', 'people'],
+                    'her': ['own', 'first', 'new', 'way', 'life', 'eyes', 'hand', 'face', 'voice', 'head'],
+                    'make': ['a', 'the', 'it', 'up', 'sure', 'sense', 'use', 'room', 'way', 'good'],
+                    'him': ['to', 'and', 'the', 'a', 'in', 'up', 'out', 'with', 'as', 'that'],
+                    'into': ['the', 'a', 'his', 'her', 'their', 'my', 'this', 'that', 'one', 'account'],
+                    'time': ['to', 'and', 'of', 'in', 'for', 'when', 'the', 'a', 'was', 'is'],
+                    'very': ['much', 'good', 'well', 'important', 'different', 'difficult', 'hard', 'easy', 'long', 'small'],
+                    'just': ['a', 'the', 'to', 'as', 'like', 'about', 'one', 'that', 'because', 'for'],
+                    'know': ['that', 'what', 'how', 'if', 'when', 'where', 'why', 'the', 'about', 'it'],
+                    'take': ['a', 'the', 'it', 'up', 'on', 'out', 'over', 'off', 'care', 'place'],
+                    'people': ['who', 'are', 'have', 'can', 'will', 'would', 'in', 'of', 'and', 'to'],
+                    'into': ['the', 'a', 'his', 'her', 'their', 'account', 'consideration', 'effect', 'practice', 'play'],
+                    'year': ['old', 'and', 'of', 'in', 'the', 'after', 'before', 'when', 'by', 'to'],
+                    'good': ['and', 'for', 'to', 'at', 'in', 'thing', 'idea', 'time', 'way', 'news'],
+                    'could': ['be', 'have', 'not', 'see', 'hear', 'feel', 'make', 'do', 'get', 'find'],
+                    'think': ['that', 'about', 'of', 'it', 'so', 'the', 'i', 'we', 'they', 'you'],
+                    'say': ['that', 'it', 'the', 'to', 'what', 'anything', 'something', 'nothing', 'a', 'hello'],
+                    'she': ['was', 'is', 'had', 'has', 'would', 'could', 'will', 'did', 'said', 'thought'],
+                    'some': ['of', 'people', 'things', 'time', 'way', 'kind', 'sort', 'other', 'one', 'more'],
+                    'other': ['people', 'things', 'hand', 'side', 'way', 'words', 'than', 'countries', 'parts', 'areas'],
+                    'its': ['own', 'way', 'first', 'new', 'best', 'most', 'use', 'place', 'time', 'members'],
+                    'now': ['the', 'i', 'it', 'he', 'she', 'we', 'they', 'and', 'that', 'a'],
+                    'way': ['to', 'of', 'the', 'in', 'that', 'out', 'through', 'around', 'back', 'up'],
+                    'may': ['be', 'have', 'not', 'also', 'well', 'need', 'want', 'seem', 'include', 'help'],
+                    'look': ['at', 'for', 'like', 'into', 'out', 'up', 'down', 'back', 'around', 'forward'],
+                    'come': ['to', 'from', 'in', 'out', 'up', 'back', 'down', 'into', 'here', 'true'],
+                    'more': ['than', 'and', 'or', 'of', 'about', 'like', 'important', 'difficult', 'likely', 'often'],
+                    'see': ['the', 'a', 'it', 'him', 'her', 'them', 'what', 'how', 'if', 'that'],
+                    'number': ['of', 'one', 'two', 'three', 'is', 'was', 'and', 'in', 'the', 'a'],
+                    'long': ['time', 'way', 'and', 'as', 'before', 'after', 'run', 'term', 'enough', 'ago'],
+                    'find': ['the', 'a', 'it', 'out', 'that', 'what', 'new', 'ways', 'themselves', 'yourself'],
+                    'down': ['the', 'to', 'and', 'in', 'on', 'at', 'from', 'into', 'by', 'a'],
+                    'day': ['and', 'of', 'in', 'the', 'after', 'before', 'when', 'by', 'to', 'one'],
+                    'get': ['a', 'the', 'it', 'to', 'up', 'out', 'in', 'into', 'back', 'rid'],
+                    'made': ['a', 'the', 'it', 'up', 'of', 'by', 'in', 'from', 'to', 'his'],
+                    'part': ['of', 'in', 'the', 'a', 'and', 'to', 'time', 'one', 'two', 'by'],
+                    'over': ['the', 'a', 'his', 'her', 'their', 'my', 'time', 'and', 'to', 'again'],
+                    'new': ['and', 'one', 'way', 'life', 'world', 'york', 'year', 'book', 'job', 'home'],
+                    'after': ['the', 'a', 'all', 'that', 'his', 'her', 'their', 'my', 'this', 'being'],
+                    'back': ['to', 'and', 'in', 'on', 'the', 'into', 'at', 'from', 'up', 'home'],
+                    'little': ['more', 'bit', 'while', 'time', 'boy', 'girl', 'one', 'thing', 'too', 'less'],
+                    'only': ['the', 'a', 'one', 'to', 'in', 'way', 'thing', 'because', 'if', 'when'],
+                    'work': ['and', 'of', 'in', 'on', 'for', 'with', 'out', 'to', 'the', 'together'],
+                    'man': ['who', 'and', 'of', 'in', 'with', 'was', 'is', 'had', 'has', 'the'],
+                    'did': ['not', 'the', 'it', 'he', 'she', 'we', 'they', 'you', 'so', 'this'],
+                    'well': ['as', 'and', 'known', 'done', 'aware', 'being', 'enough', 'above', 'below', 'in'],
+                    'three': ['of', 'and', 'or', 'years', 'times', 'days', 'months', 'weeks', 'hundred', 'main'],
+                    'word': ['for', 'of', 'and', 'is', 'the', 'a', 'in', 'that', 'to', 'was'],
+                    'must': ['be', 'have', 'not', 'also', 'first', 'always', 'do', 'make', 'take', 'say'],
+                    'call': ['the', 'it', 'him', 'her', 'them', 'for', 'on', 'upon', 'out', 'to'],
+                    'first': ['time', 'and', 'of', 'the', 'to', 'in', 'place', 'thing', 'step', 'day'],
+                    'who': ['is', 'are', 'was', 'were', 'has', 'have', 'had', 'will', 'would', 'can'],
+                    'may': ['be', 'have', 'not', 'also', 'well', 'need', 'want', 'seem', 'include', 'find'],
+                    'been': ['a', 'the', 'made', 'used', 'done', 'said', 'given', 'found', 'seen', 'able'],
+                    'most': ['of', 'people', 'important', 'likely', 'common', 'popular', 'recent', 'often', 'cases', 'part'],
+                    'two': ['of', 'and', 'or', 'years', 'times', 'days', 'weeks', 'months', 'main', 'different'],
+                    'before': ['the', 'it', 'he', 'she', 'we', 'they', 'i', 'a', 'his', 'her'],
+                    'world': ['of', 'and', 'is', 'war', 'the', 'in', 'wide', 'around', 'today', 'where'],
+                    'should': ['be', 'have', 'not', 'also', 'make', 'take', 'do', 'get', 'consider', 'note'],
+                    'still': ['be', 'have', 'not', 'a', 'the', 'in', 'very', 'more', 'here', 'there'],
+                    'through': ['the', 'a', 'his', 'her', 'their', 'my', 'this', 'that', 'which', 'it'],
+                    'last': ['year', 'time', 'week', 'month', 'day', 'night', 'few', 'one', 'two', 'three'],
+                    'might': ['be', 'have', 'not', 'also', 'well', 'seem', 'want', 'need', 'even', 'just'],
+                    'between': ['the', 'two', 'them', 'us', 'different', 'these', 'various', 'his', 'her', 'our'],
+                    'turn': ['to', 'out', 'into', 'around', 'back', 'up', 'down', 'over', 'off', 'on'],
+                    'seem': ['to', 'like', 'very', 'so', 'more', 'less', 'quite', 'rather', 'somewhat', 'a'],
+                    'few': ['of', 'years', 'days', 'weeks', 'months', 'minutes', 'people', 'things', 'times', 'more'],
+                    'those': ['who', 'are', 'were', 'have', 'had', 'will', 'would', 'can', 'could', 'in'],
+                    'always': ['be', 'have', 'been', 'a', 'the', 'in', 'on', 'there', 'ready', 'remember'],
+                    'show': ['the', 'that', 'how', 'a', 'it', 'us', 'you', 'them', 'me', 'him'],
+                    'large': ['and', 'number', 'part', 'amount', 'scale', 'enough', 'group', 'area', 'city', 'company'],
+                    'often': ['the', 'a', 'used', 'called', 'found', 'seen', 'said', 'referred', 'considered', 'associated'],
+                    'together': ['with', 'and', 'to', 'in', 'the', 'they', 'we', 'for', 'as', 'by'],
+                    'ask': ['for', 'the', 'a', 'about', 'if', 'whether', 'what', 'how', 'why', 'him'],
+                    'house': ['and', 'of', 'in', 'the', 'was', 'is', 'where', 'to', 'on', 'with'],
+                    'while': ['the', 'i', 'it', 'he', 'she', 'we', 'they', 'a', 'some', 'others'],
+                    'against': ['the', 'a', 'his', 'her', 'their', 'my', 'this', 'that', 'all', 'any'],
+                    'school': ['and', 'of', 'in', 'the', 'is', 'was', 'to', 'for', 'at', 'where'],
+                    'hand': ['and', 'of', 'in', 'the', 'on', 'to', 'with', 'was', 'is', 'over'],
+                    'state': ['and', 'of', 'the', 'in', 'is', 'was', 'that', 'to', 'a', 'university'],
+                    'keep': ['the', 'a', 'it', 'up', 'in', 'on', 'out', 'track', 'your', 'an'],
+                    'point': ['of', 'out', 'in', 'is', 'was', 'the', 'to', 'at', 'and', 'where'],
+                    'eye': ['and', 'of', 'on', 'the', 'to', 'for', 'contact', 'was', 'is', 'in'],
+                    'never': ['be', 'have', 'been', 'seen', 'heard', 'before', 'again', 'forget', 'mind', 'had'],
+                    'become': ['a', 'the', 'more', 'very', 'increasingly', 'one', 'an', 'part', 'aware', 'clear'],
+                    'head': ['of', 'and', 'to', 'the', 'in', 'on', 'over', 'was', 'is', 'back'],
+                    'under': ['the', 'a', 'his', 'her', 'their', 'my', 'this', 'that', 'which', 'any'],
+                    'same': ['time', 'way', 'thing', 'as', 'and', 'the', 'day', 'year', 'place', 'person'],
+                    'kind': ['of', 'and', 'the', 'a', 'to', 'in', 'that', 'is', 'was', 'thing'],
+                    'being': ['a', 'the', 'able', 'used', 'made', 'done', 'said', 'called', 'seen', 'given'],
+                    'such': ['a', 'as', 'an', 'that', 'things', 'cases', 'people', 'way', 'the', 'circumstances'],
+                    'because': ['of', 'the', 'it', 'he', 'she', 'we', 'they', 'i', 'there', 'this'],
+                    'every': ['day', 'time', 'year', 'one', 'thing', 'person', 'single', 'other', 'week', 'month'],
+                    'name': ['of', 'and', 'is', 'was', 'the', 'for', 'to', 'in', 'a', 'given'],
+                    'sentence': ['and', 'of', 'the', 'is', 'was', 'in', 'to', 'a', 'structure', 'for'],
+                    'great': ['and', 'deal', 'many', 'number', 'part', 'importance', 'interest', 'care', 'effort', 'success'],
+                    'country': ['and', 'of', 'the', 'in', 'is', 'was', 'to', 'a', 'where', 'has'],
+                    'place': ['and', 'of', 'the', 'in', 'to', 'where', 'a', 'for', 'is', 'was'],
+                    'high': ['and', 'school', 'level', 'quality', 'degree', 'rate', 'point', 'court', 'standard', 'enough'],
+                    'different': ['from', 'and', 'ways', 'kinds', 'types', 'things', 'people', 'parts', 'areas', 'levels'],
+                    'next': ['to', 'day', 'time', 'year', 'week', 'month', 'step', 'morning', 'one', 'few'],
+                    'end': ['of', 'the', 'up', 'in', 'and', 'to', 'result', 'point', 'is', 'was'],
+                    'live': ['in', 'and', 'with', 'on', 'the', 'a', 'to', 'for', 'their', 'life'],
+                    'need': ['to', 'for', 'a', 'the', 'not', 'more', 'help', 'it', 'be', 'is'],
+                    'another': ['one', 'way', 'time', 'person', 'thing', 'example', 'important', 'reason', 'day', 'year'],
+                    'right': ['to', 'and', 'now', 'away', 'thing', 'way', 'place', 'time', 'here', 'there'],
+                    'want': ['to', 'the', 'a', 'it', 'you', 'me', 'him', 'her', 'them', 'something'],
+                    'old': ['and', 'man', 'woman', 'one', 'enough', 'friend', 'house', 'days', 'age', 'times'],
+                    'too': ['much', 'many', 'long', 'late', 'early', 'far', 'often', 'bad', 'good', 'small'],
+                    'mean': ['that', 'the', 'a', 'to', 'it', 'anything', 'something', 'nothing', 'what', 'by'],
+                    'let': ['me', 'us', 'the', 'it', 'him', 'her', 'them', 'go', 'alone', 'down'],
+                    'any': ['of', 'other', 'time', 'way', 'kind', 'case', 'more', 'one', 'thing', 'questions'],
+                    'interest': ['in', 'and', 'of', 'the', 'rate', 'rates', 'is', 'was', 'to', 'group'],
+                    'line': ['and', 'of', 'the', 'in', 'is', 'was', 'between', 'to', 'a', 'up'],
+                    'without': ['the', 'a', 'any', 'being', 'having', 'it', 'them', 'him', 'her', 'even'],
+                    'consider': ['the', 'a', 'it', 'that', 'what', 'how', 'whether', 'this', 'all', 'using']
+                };
+
+                return transitions;
+            }
+
+            buildWordList() {
+                // Massively extended English word list with varying difficulty
+                return [
+                    // ============================================
+                    // TIER 1: Very Common Words (easiest)
+                    // ============================================
+                    'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i',
+                    'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at',
+                    'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she',
+                    'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their', 'what',
+                    'so', 'up', 'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me',
+                    'when', 'make', 'can', 'like', 'time', 'no', 'just', 'him', 'know', 'take',
+                    'people', 'into', 'year', 'your', 'good', 'some', 'could', 'them', 'see', 'other',
+                    'than', 'then', 'now', 'look', 'only', 'come', 'its', 'over', 'think', 'also',
+                    'back', 'after', 'use', 'two', 'how', 'our', 'work', 'first', 'well', 'way',
+                    'even', 'new', 'want', 'because', 'any', 'these', 'give', 'day', 'most', 'us',
+                    'am', 'been', 'has', 'had', 'were', 'said', 'did', 'got', 'made', 'found',
+                    'may', 'must', 'such', 'much', 'more', 'very', 'own', 'same', 'man', 'men',
+                    'too', 'any', 'why', 'put', 'old', 'off', 'let', 'big', 'few', 'ask',
+                    'run', 'set', 'try', 'end', 'add', 'yet', 'say', 'top', 'saw', 'yet',
+                    
+                    // ============================================
+                    // TIER 2: Common Words (easy)
+                    // ============================================
+                    'find', 'here', 'thing', 'many', 'still', 'before', 'through', 'where', 'those',
+                    'long', 'down', 'should', 'each', 'made', 'being', 'part', 'need', 'great', 'life',
+                    'last', 'every', 'never', 'under', 'another', 'while', 'might', 'world', 'school', 'state',
+                    'keep', 'always', 'place', 'both', 'between', 'high', 'three', 'small', 'house', 'show',
+                    'hand', 'again', 'right', 'large', 'until', 'home', 'read', 'night', 'country', 'next',
+                    'city', 'left', 'number', 'head', 'against', 'since', 'turn', 'seem', 'different', 'kind',
+                    'point', 'away', 'play', 'move', 'live', 'side', 'call', 'name', 'group', 'mean',
+                    'start', 'young', 'fact', 'case', 'early', 'face', 'open', 'often', 'become', 'tell',
+                    'four', 'five', 'six', 'best', 'real', 'team', 'eye', 'room', 'book', 'word',
+                    'body', 'water', 'form', 'car', 'human', 'air', 'mind', 'heart', 'door', 'wall',
+                    'game', 'food', 'idea', 'half', 'rest', 'test', 'job', 'road', 'stay', 'girl',
+                    'boy', 'love', 'town', 'war', 'law', 'view', 'role', 'line', 'care', 'step',
+                    'bit', 'cut', 'hit', 'bad', 'eat', 'sit', 'sun', 'art', 'win', 'box',
+                    'cup', 'age', 'act', 'dog', 'cat', 'bed', 'key', 'sea', 'hot', 'fun',
+                    'cup', 'hair', 'foot', 'fire', 'tree', 'ball', 'bird', 'fish', 'star', 'red',
+                    'blue', 'yes', 'stop', 'walk', 'speak', 'watch', 'hear', 'feel', 'meet', 'wait',
+                    'hold', 'stand', 'fall', 'grow', 'draw', 'pick', 'drop', 'push', 'pull', 'fill',
+                    'send', 'build', 'kill', 'pass', 'spend', 'break', 'write', 'fight', 'bring', 'begin',
+                    'learn', 'save', 'wish', 'hope', 'cost', 'pay', 'buy', 'sell', 'deal', 'check',
+                    'reach', 'touch', 'raise', 'drive', 'catch', 'throw', 'wear', 'rise', 'carry', 'beat',
+                    
+                    // ============================================
+                    // TIER 3: Moderate Words (medium-easy)
+                    // ============================================
+                    'public', 'already', 'problem', 'government', 'system', 'program', 'question', 'during', 'money', 'story',
+                    'however', 'power', 'change', 'mother', 'area', 'almost', 'family', 'later', 'children', 'minute',
+                    'enough', 'women', 'example', 'result', 'several', 'hour', 'certain', 'order', 'study', 'together',
+                    'white', 'close', 'possible', 'society', 'market', 'history', 'company', 'little', 'without', 'father',
+                    'building', 'table', 'information', 'student', 'others', 'along', 'rather', 'perhaps', 'sometimes', 'experience',
+                    'development', 'behind', 'person', 'service', 'field', 'across', 'whether', 'either', 'action', 'special',
+                    'second', 'nature', 'usually', 'national', 'available', 'general', 'local', 'political', 'social', 'economic',
+                    'business', 'health', 'research', 'community', 'support', 'toward', 'within', 'likely', 'quite', 'clear',
+                    'process', 'provide', 'include', 'report', 'effort', 'reason', 'sense', 'cover', 'return', 'continue',
+                    'expect', 'remain', 'matter', 'present', 'appear', 'notice', 'leader', 'office', 'court', 'common',
+                    'control', 'period', 'season', 'moment', 'member', 'model', 'event', 'letter', 'listen', 'record',
+                    'police', 'accept', 'decide', 'direct', 'future', 'supply', 'simple', 'value', 'force', 'major',
+                    'recent', 'level', 'legal', 'range', 'issue', 'single', 'stage', 'scene', 'effect', 'design',
+                    'create', 'current', 'central', 'follow', 'normal', 'focus', 'detail', 'choice', 'century', 'impact',
+                    'patient', 'benefit', 'demand', 'degree', 'average', 'suggest', 'produce', 'receive', 'measure', 'figure',
+                    'method', 'modern', 'popular', 'series', 'trouble', 'apply', 'allow', 'achieve', 'admit', 'argue',
+                    'assume', 'attach', 'attend', 'avoid', 'belong', 'bother', 'cancel', 'compare', 'complete', 'concern',
+                    'confirm', 'connect', 'contain', 'correct', 'damage', 'defend', 'define', 'deliver', 'depend', 'discover',
+                    'discuss', 'enable', 'engage', 'enjoy', 'ensure', 'enter', 'escape', 'examine', 'exist', 'expand',
+                    'explain', 'express', 'extend', 'handle', 'happen', 'ignore', 'imagine', 'improve', 'inform', 'insist',
+                    
+                    // ============================================
+                    // TIER 4: Less Common Words (medium)
+                    // ============================================
+                    'authority', 'evidence', 'individual', 'although', 'especially', 'determine', 'situation', 'particular', 'require',
+                    'significant', 'various', 'financial', 'international', 'physical', 'describe', 'environment', 'particularly', 'additional',
+                    'consider', 'analysis', 'position', 'opportunity', 'knowledge', 'president', 'technology', 'management', 'performance',
+                    'organization', 'responsibility', 'traditional', 'relationship', 'professional', 'communication', 'successful', 'understanding',
+                    'independent', 'immediately', 'appropriate', 'commercial', 'fundamental', 'necessary', 'environmental', 'approximately',
+                    'consequences', 'circumstances', 'manufacturing', 'representative', 'infrastructure', 'comprehensive', 'administration',
+                    'application', 'assessment', 'association', 'background', 'california', 'challenge', 'collection', 'combination',
+                    'commission', 'commitment', 'comparison', 'competition', 'complaint', 'conclusion', 'conference', 'confidence',
+                    'connection', 'consideration', 'construction', 'contribution', 'conversation', 'corporation', 'criticism', 'definition',
+                    'demonstration', 'description', 'destination', 'destruction', 'discussion', 'distribution', 'education', 'employment',
+                    'engineering', 'establishment', 'examination', 'exception', 'exercise', 'exhibition', 'expectation', 'explanation',
+                    'expression', 'foundation', 'generation', 'identification', 'imagination', 'implementation', 'impression', 'improvement',
+                    'indication', 'instruction', 'intelligence', 'introduction', 'investigation', 'involvement', 'legislation', 'literature',
+                    'maintenance', 'mechanism', 'observation', 'occupation', 'operation', 'opposition', 'perception', 'perspective',
+                    'philosophy', 'population', 'possession', 'possibility', 'preparation', 'presentation', 'prevention', 'principle',
+                    'procedure', 'production', 'profession', 'proportion', 'protection', 'publication', 'recommendation', 'reduction',
+                    'reference', 'reflection', 'regulation', 'representation', 'reputation', 'requirement', 'resolution', 'restaurant',
+                    'revolution', 'satisfaction', 'secretary', 'selection', 'settlement', 'significance', 'solution', 'specialist',
+                    'speculation', 'statistics', 'strategy', 'strength', 'structure', 'substance', 'suggestion', 'temperature',
+                    'tradition', 'transition', 'treatment', 'unemployment', 'university', 'variation', 'yesterday', 'entertainment',
+                    
+                    // ============================================
+                    // TIER 5: Uncommon Words (medium-hard)
+                    // ============================================
+                    'accommodate', 'accomplish', 'accumulate', 'acknowledge', 'acquisition', 'advertisement', 'aesthetic', 'affirmative',
+                    'agriculture', 'alternative', 'ambassador', 'ambiguous', 'amendment', 'anniversary', 'anonymous', 'anticipate',
+                    'apparatus', 'appreciate', 'approximate', 'arbitrary', 'architecture', 'artificial', 'assassination', 'assistance',
+                    'assumption', 'atmosphere', 'authentic', 'authorize', 'automobile', 'bankruptcy', 'beneficial', 'bibliography',
+                    'biography', 'breathtaking', 'breakthrough', 'bureaucracy', 'calculation', 'capability', 'catastrophe', 'certificate',
+                    'characteristic', 'civilization', 'classification', 'collaboration', 'commemorate', 'commentary', 'commodity',
+                    'communicate', 'compensation', 'complexity', 'composition', 'concentrate', 'conception', 'configuration', 'congratulate',
+                    'consciousness', 'consecutive', 'considerable', 'consolidate', 'conspiracy', 'constitution', 'contemporary', 'contemplate',
+                    'continuous', 'contradiction', 'controversial', 'convenience', 'conventional', 'cooperation', 'coordinate', 'correspondence',
+                    'curriculum', 'declaration', 'deliberately', 'democracy', 'demographic', 'demonstrate', 'denomination', 'dependency',
+                    'deployment', 'depression', 'deteriorate', 'determination', 'development', 'differentiate', 'diplomatic', 'disadvantage',
+                    'disappointment', 'discipline', 'discrimination', 'disposition', 'distinguish', 'documentation', 'dramatically',
+                    'ecological', 'effectiveness', 'efficiency', 'electricity', 'electronic', 'elementary', 'eligibility', 'eliminate',
+                    'embarrass', 'emergence', 'emotional', 'emphasize', 'encounter', 'encourage', 'encyclopedia', 'enforcement',
+                    'engagement', 'enhancement', 'enthusiasm', 'entrepreneur', 'environment', 'equivalent', 'establish', 'evaluation',
+                    'eventually', 'everywhere', 'exaggerate', 'examination', 'exceptional', 'exclusively', 'executive', 'exhaustive',
+                    'existence', 'expedition', 'expenditure', 'experimental', 'exploration', 'extraordinary', 'facilitate', 'fascinate',
+                    'flexibility', 'fluctuation', 'formulation', 'fortunately', 'framework', 'furthermore', 'generalization', 'geographical',
+                    'grandfather', 'grandmother', 'gratitude', 'guarantee', 'handicapped', 'headquarters', 'helicopter', 'hemisphere',
+                    'hesitation', 'hypothesis', 'illustration', 'immigration', 'implication', 'imprisonment', 'incorporate', 'incredible',
+                    'indefinitely', 'independence', 'indigenous', 'inevitable', 'influential', 'inheritance', 'initiative', 'innovation',
+                    'insufficient', 'intellectual', 'interference', 'intermediate', 'interpretation', 'intervention', 'jurisdiction',
+                    
+                    // ============================================
+                    // TIER 6: Rare Words (hard)
+                    // ============================================
+                    'kaleidoscope', 'labyrinth', 'legislation', 'legitimate', 'magnificent', 'maintenance', 'malfunction', 'manifestation',
+                    'manipulation', 'mathematical', 'meaningfully', 'measurement', 'Mediterranean', 'merchandise', 'metaphor', 'methodology',
+                    'metropolitan', 'microorganism', 'microscopic', 'millennium', 'miscellaneous', 'misconception', 'misunderstanding',
+                    'modification', 'monopoly', 'motivation', 'multiplication', 'municipality', 'mysterious', 'nationalism', 'negligence',
+                    'negotiation', 'neighborhood', 'nevertheless', 'nomenclature', 'nomination', 'notwithstanding', 'objectionable', 'obligation',
+                    'observatory', 'occasionally', 'operational', 'oppression', 'optimization', 'orientation', 'originality', 'orthodoxy',
+                    'oscillation', 'outstanding', 'overwhelming', 'painstaking', 'paradoxical', 'parliamentary', 'participation', 'partnership',
+                    'pathological', 'pedestrian', 'penetration', 'perfectionist', 'periodically', 'permissible', 'perpetual', 'persecution',
+                    'persistence', 'personality', 'pharmaceutical', 'phenomenal', 'philanthropic', 'philosopher', 'photographic', 'picturesque',
+                    'plagiarism', 'polarization', 'practicality', 'practically', 'practitioner', 'precaution', 'precipitation', 'predominant',
+                    'preliminary', 'preoccupation', 'prescription', 'preservation', 'presumably', 'presumption', 'prioritize', 'probability',
+                    'problematic', 'proclamation', 'productivity', 'programming', 'prohibition', 'proliferation', 'pronunciation', 'propaganda',
+                    'proposition', 'prosecution', 'prospective', 'protagonist', 'provisional', 'psychological', 'publication', 'punctuation',
+                    'quadruple', 'qualification', 'quantitative', 'quarantine', 'questionnaire', 'quintessential', 'rationalize', 'realization',
+                    'reassurance', 'recollection', 'reconciliation', 'reconnaissance', 'reconstruction', 'recreational', 'referendum',
+                    'refrigerator', 'registration', 'rehabilitation', 'reimbursement', 'reinforcement', 'relationship', 'reliability',
+                    'reluctantly', 'reminiscent', 'remuneration', 'reorganization', 'replacement', 'representation', 'reproduction',
+                    'resemblance', 'reservation', 'residential', 'resignation', 'resourceful', 'respectively', 'responsibility', 'restructure',
+                    'retrospective', 'revolutionary', 'righteousness', 'romanticism', 'rudimentary', 'sacrificial', 'safeguarding',
+                    'sanctification', 'satisfaction', 'scandalous', 'schizophrenia', 'scholarship', 'scrupulous', 'sedimentation',
+                    'segregation', 'semiconductor', 'sensational', 'sentimental', 'serendipity', 'significantly', 'simplification',
+                    'simultaneous', 'skyscraper', 'sophisticated', 'specialization', 'specification', 'spectacular', 'spokesperson',
+                    'spontaneous', 'standardization', 'stationery', 'statistical', 'stereotypical', 'straightforward', 'strangulation',
+                    'stratification', 'strengthening', 'subscription', 'subsequently', 'substantially', 'substitution', 'subterranean',
+                    'sufficiently', 'superfluous', 'superintendent', 'supernatural', 'supplementary', 'surveillance', 'susceptible',
+                    'sustainability', 'symbolically', 'sympathetic', 'synchronize', 'systematically', 'technological', 'telecommunications',
+                    'temperament', 'terminology', 'terrestrial', 'thanksgiving', 'theoretical', 'therapeutic', 'thermometer', 'thoroughfare',
+                    'threatening', 'thunderstorm', 'totalitarian', 'traditionally', 'trafficking', 'transaction', 'transcendent',
+                    'transferable', 'transformation', 'transgression', 'transitional', 'transmission', 'transparency', 'transportation',
+                    'treacherous', 'tremendously', 'triangular', 'troublesome', 'trustworthy', 'tuberculosis', 'ubiquitous', 'ultimatum',
+                    'unacceptable', 'unanimously', 'unanticipated', 'unauthorized', 'unavoidable', 'uncomfortable', 'unconditional',
+                    'unconscious', 'unconventional', 'underestimate', 'undergraduate', 'underground', 'understanding', 'undertaking',
+                    'undoubtedly', 'unemployment', 'unexpectedly', 'unforgettable', 'unfortunately', 'unidentified', 'unilateral',
+                    'unintelligible', 'universally', 'unnecessary', 'unprecedented', 'unpredictable', 'unreasonable', 'unsatisfactory',
+                    'unsuccessful', 'utilization', 'vaccination', 'verification', 'vernacular', 'versatility', 'visualization',
+                    'voluntarily', 'vulnerability', 'waterproof', 'weatherproof', 'whereabouts', 'wholehearted', 'widespread',
+                    'willingness', 'workmanship', 'worthwhile', 'xenophobia', 'yellowish', 'yourselves', 'zealously',
+                    
+                    // ============================================
+                    // TIER 7: Very Rare / Difficult Words
+                    // ============================================
+                    'abominable', 'abstemious', 'acquiesce', 'acrimonious', 'aestheticism', 'aggrandizement', 'alacrity', 'amalgamation',
+                    'ameliorate', 'anachronism', 'antediluvian', 'anthropomorphic', 'apocryphal', 'apprehension', 'archipelago', 'ascertain',
+                    'asphyxiation', 'assiduous', 'auspicious', 'autodidact', 'avarice', 'axiom', 'bellicose', 'beneficent',
+                    'benevolent', 'bibliophile', 'blandishment', 'blasphemous', 'bloviate', 'brobdingnagian', 'bumptious', 'byzantine',
+                    'calamitous', 'callipygian', 'calumny', 'camaraderie', 'capitulation', 'capricious', 'cartography', 'cataclysm',
+                    'catharsis', 'chauvinism', 'chicanery', 'circumlocution', 'clandestine', 'clairvoyance', 'coagulation', 'cognoscenti',
+                    'colloquial', 'commiserate', 'compendium', 'complacent', 'concatenation', 'conciliatory', 'concomitant', 'conflagration',
+                    'conglomerate', 'consternation', 'contiguous', 'contravention', 'conundrum', 'convivial', 'corpulent', 'corroborate',
+                    'countenance', 'curmudgeon', 'cynosure', 'debilitate', 'decadence', 'declivity', 'deleterious', 'delineate',
+                    'demagogue', 'demarcation', 'denouement', 'deprecation', 'dereliction', 'desiccate', 'desultory', 'diatribe',
+                    'dichotomy', 'diffident', 'dilettante', 'discombobulate', 'discordant', 'disingenuous', 'disparagement', 'disseminate',
+                    'ebullient', 'ecclesiastical', 'ecumenical', 'edification', 'effervescent', 'efficacious', 'efflorescence', 'effulgent',
+                    'egalitarian', 'egregious', 'elucubrate', 'emaciated', 'embellishment', 'emolument', 'encomium', 'endemic',
+                    'enervate', 'enigmatic', 'ephemeral', 'equanimity', 'equinox', 'equivocate', 'erudition', 'esoteric',
+                    'ethereal', 'euphemism', 'evanescent', 'excoriate', 'execrable', 'exegesis', 'exigent', 'existential',
+                    'exonerate', 'expatriate', 'expedient', 'expiate', 'expostulate', 'expropriate', 'extenuate', 'extrapolate',
+                    'facetious', 'fastidious', 'fatuous', 'fecund', 'felicitous', 'ferocious', 'filibuster', 'flabbergast',
+                    'flagitious', 'flotsam', 'fractious', 'frangible', 'fulminate', 'garrulous', 'genuflect', 'germane',
+                    'gesticulate', 'grandiloquent', 'gratuitous', 'gregarious', 'gubernatorial', 'gyroscope', 'harangue', 'harbinger',
+                    'hegemony', 'heinous', 'herculean', 'hermetic', 'heterogeneous', 'histrionic', 'homogeneous', 'hubris',
+                    'iconoclast', 'idiosyncrasy', 'ignominious', 'illimitable', 'imbroglio', 'immaculate', 'immutable', 'impecunious',
+                    'imperious', 'imperturbable', 'impervious', 'implacable', 'impugn', 'incandescent', 'inchoate', 'incongruous',
+                    'incontrovertible', 'incorrigible', 'indefatigable', 'indelible', 'indemnify', 'indigenous', 'indolent', 'ineffable',
+                    'inexorable', 'ingenuous', 'inimitable', 'innocuous', 'innuendo', 'inscrutable', 'insidious', 'insouciant',
+                    'intransigent', 'intrepid', 'inundate', 'inveterate', 'irascible', 'irreverent', 'itinerant', 'jettison',
+                    'juggernaut', 'jurisprudence', 'juxtaposition', 'kinesthetic', 'labyrinthine', 'lachrymose', 'lackadaisical', 'laconic',
+                    'lascivious', 'legerdemain', 'lethargic', 'licentious', 'loquacious', 'lugubrious', 'luminescent', 'machination',
+                    'magnanimous', 'malapropism', 'malevolent', 'malfeasance', 'malleable', 'malodorous', 'masochism', 'melancholy',
+                    'mellifluous', 'mendacious', 'meritorious', 'metamorphosis', 'meticulous', 'miasma', 'milquetoast', 'misanthrope',
+                    'mollify', 'moribund', 'multifarious', 'munificent', 'myriad', 'nadir', 'narcissism', 'nascent',
+                    'nefarious', 'neologism', 'nepotism', 'nihilism', 'nocturnal', 'nonchalant', 'nonpareil', 'nostalgia',
+                    'obdurate', 'obfuscate', 'obloquy', 'obsequious', 'obstreperous', 'obtrusive', 'obviate', 'odious',
+                    'omnipotent', 'omniscient', 'onomatopoeia', 'opprobrious', 'oscillate', 'ostentatious', 'ostracize', 'overture',
+                    'palatable', 'palindrome', 'palliate', 'panacea', 'panache', 'pandemic', 'panegyric', 'paradigm',
+                    'paradox', 'paragon', 'pariah', 'paroxysm', 'parsimonious', 'pastiche', 'patronize', 'paucity',
+                    'pedantic', 'pejorative', 'penchant', 'penitent', 'penultimate', 'perambulate', 'percipient', 'perdition',
+                    'peremptory', 'perfidious', 'perfunctory', 'peripatetic', 'pernicious', 'perquisite', 'perspicacious', 'pertinacious',
+                    'petulant', 'philanthropy', 'philistine', 'phlegmatic', 'picaresque', 'pious', 'pique', 'plaintive',
+                    'platitude', 'plausible', 'plethora', 'plutocracy', 'poignant', 'ponderous', 'portentous', 'posthumous',
+                    'pragmatic', 'preamble', 'precarious', 'precipitous', 'precocious', 'predilection', 'preeminent', 'prerogative',
+                    'prescient', 'prevaricate', 'primordial', 'probity', 'proclivity', 'procrastinate', 'prodigious', 'profligate',
+                    'prognosticate', 'prolific', 'promulgate', 'propensity', 'propitious', 'propriety', 'proscribe', 'prosaic',
+                    'protagonist', 'protean', 'provenance', 'puerile', 'pugnacious', 'pulchritudinous', 'punctilious', 'pungent',
+                    'pusillanimous', 'quagmire', 'qualm', 'quandary', 'querulous', 'quiescent', 'quixotic', 'quotidian',
+                    'raconteur', 'rambunctious', 'rancorous', 'rapacious', 'rarefied', 'ratiocinate', 'recalcitrant', 'recapitulate',
+                    'reciprocate', 'recondite', 'recrimination', 'rectitude', 'redoubtable', 'redundant', 'refractory', 'regurgitate',
+                    'relegate', 'remonstrate', 'renascent', 'repartee', 'reprehensible', 'reprobate', 'repudiate', 'rescind',
+                    'resilient', 'restitution', 'resurgence', 'reticent', 'reverie', 'rhetoric', 'ribald', 'risible',
+                    'rococo', 'ruminate', 'saccharine', 'sacrosanct', 'sagacious', 'salient', 'sanguine', 'sardonic',
+                    'scintillate', 'scrupulous', 'seditious', 'sententious', 'seraphic', 'serpentine', 'sibilant', 'simulacrum',
+                    'sinecure', 'sobriety', 'solicitous', 'soliloquy', 'somnolent', 'sonorous', 'sophistry', 'soporific',
+                    'sordid', 'specious', 'spurious', 'squalid', 'staid', 'stentorian', 'stolid', 'stratagem',
+                    'strident', 'stringent', 'stultify', 'stupendous', 'subaltern', 'subjugate', 'sublime', 'subservient',
+                    'subterfuge', 'succinct', 'sycophant', 'taciturn', 'tangential', 'tantamount', 'tautology', 'temerity',
+                    'tempestuous', 'tendentious', 'tenebrous', 'tergiversate', 'timorous', 'torpid', 'tortuous', 'tractable',
+                    'transient', 'trenchant', 'trepidation', 'truculent', 'tumultuous', 'turgid', 'turpitude', 'ubiquitous',
+                    'umbrage', 'uncouth', 'unctuous', 'undulate', 'unequivocal', 'unfathomable', 'unimpeachable', 'unkempt',
+                    'unpropitious', 'unseemly', 'unwitting', 'upbraid', 'urbane', 'usurp', 'vacillate', 'vacuous',
+                    'valediction', 'vapid', 'variegated', 'vehement', 'venal', 'venerable', 'venial', 'veracious',
+                    'verbose', 'verdant', 'verisimilitude', 'vernacular', 'vicarious', 'vicissitude', 'vilify', 'vindicate',
+                    'virtuoso', 'virulent', 'visceral', 'vitriolic', 'vituperate', 'vivacious', 'vivisection', 'vociferous',
+                    'voluble', 'voracious', 'vortex', 'wanton', 'whimsical', 'winsome', 'wizened', 'wraith',
+                    'xenophile', 'zealot', 'zeitgeist', 'zenith', 'zephyr'
+                ];
+            }
+
+            // C++ code snippets - short functions, max 8 lines
+            getCppSnippets() {
+                return [
+                    // Easy - simple functions
+                    `int add(int a, int b) {\n    return a + b;\n}`,
+                    `int max(int a, int b) {\n    return a > b ? a : b;\n}`,
+                    `void swap(int& a, int& b) {\n    int t = a;\n    a = b;\n    b = t;\n}`,
+                    `bool isEven(int n) {\n    return n % 2 == 0;\n}`,
+                    `int square(int x) {\n    return x * x;\n}`,
+                    `double avg(double a, double b) {\n    return (a + b) / 2.0;\n}`,
+                    `int abs(int x) {\n    return x < 0 ? -x : x;\n}`,
+                    `bool isPositive(int n) {\n    return n > 0;\n}`,
+                    `int min(int a, int b) {\n    return a < b ? a : b;\n}`,
+                    `void print(int n) {\n    std::cout << n << std::endl;\n}`,
+                    
+                    // Medium - loops and conditions
+                    `int sum(int n) {\n    int s = 0;\n    for(int i = 1; i <= n; i++)\n        s += i;\n    return s;\n}`,
+                    `int factorial(int n) {\n    if(n <= 1) return 1;\n    return n * factorial(n-1);\n}`,
+                    `bool isPrime(int n) {\n    if(n < 2) return false;\n    for(int i = 2; i*i <= n; i++)\n        if(n % i == 0) return false;\n    return true;\n}`,
+                    `int gcd(int a, int b) {\n    while(b != 0) {\n        int t = b;\n        b = a % b;\n        a = t;\n    }\n    return a;\n}`,
+                    `int fib(int n) {\n    if(n <= 1) return n;\n    return fib(n-1) + fib(n-2);\n}`,
+                    `int countDigits(int n) {\n    int c = 0;\n    while(n > 0) {\n        c++;\n        n /= 10;\n    }\n    return c;\n}`,
+                    `int power(int b, int e) {\n    int r = 1;\n    for(int i = 0; i < e; i++)\n        r *= b;\n    return r;\n}`,
+                    `void reverse(int arr[], int n) {\n    for(int i = 0; i < n/2; i++)\n        std::swap(arr[i], arr[n-1-i]);\n}`,
+                    `int sumArray(int arr[], int n) {\n    int sum = 0;\n    for(int i = 0; i < n; i++)\n        sum += arr[i];\n    return sum;\n}`,
+                    `int maxArray(int arr[], int n) {\n    int m = arr[0];\n    for(int i = 1; i < n; i++)\n        if(arr[i] > m) m = arr[i];\n    return m;\n}`,
+                    
+                    // Harder - pointers, templates, STL
+                    `template<typename T>\nT max(T a, T b) {\n    return a > b ? a : b;\n}`,
+                    `void sort(std::vector<int>& v) {\n    std::sort(v.begin(), v.end());\n}`,
+                    `int find(std::vector<int>& v, int x) {\n    for(size_t i = 0; i < v.size(); i++)\n        if(v[i] == x) return i;\n    return -1;\n}`,
+                    `std::string reverse(std::string s) {\n    std::reverse(s.begin(), s.end());\n    return s;\n}`,
+                    `bool isPalindrome(std::string s) {\n    int l = 0, r = s.size()-1;\n    while(l < r)\n        if(s[l++] != s[r--]) return false;\n    return true;\n}`,
+                    `int* createArray(int n) {\n    int* arr = new int[n];\n    for(int i = 0; i < n; i++)\n        arr[i] = 0;\n    return arr;\n}`,
+                    `void deleteArray(int* arr) {\n    delete[] arr;\n    arr = nullptr;\n}`,
+                    `size_t strlen(const char* s) {\n    size_t len = 0;\n    while(*s++) len++;\n    return len;\n}`,
+                    `void strcpy(char* dst, const char* src) {\n    while(*src)\n        *dst++ = *src++;\n    *dst = '\\0';\n}`,
+                    `int atoi(const char* s) {\n    int n = 0;\n    while(*s >= '0' && *s <= '9')\n        n = n*10 + (*s++ - '0');\n    return n;\n}`,
+                    
+                    // Class methods
+                    `class Counter {\n    int count = 0;\npublic:\n    void inc() { count++; }\n    int get() { return count; }\n};`,
+                    `struct Point {\n    int x, y;\n    double dist() {\n        return std::sqrt(x*x + y*y);\n    }\n};`,
+                    `class Stack {\n    std::vector<int> data;\npublic:\n    void push(int x) { data.push_back(x); }\n    int pop() { int t = data.back(); data.pop_back(); return t; }\n};`,
+                    
+                    // Lambda and modern C++
+                    `auto add = [](int a, int b) {\n    return a + b;\n};`,
+                    `auto square = [](int x) { return x * x; };`,
+                    `std::for_each(v.begin(), v.end(),\n    [](int& x) { x *= 2; });`,
+                    `auto it = std::find_if(v.begin(), v.end(),\n    [](int x) { return x > 10; });`,
+                    
+                    // Short algorithms
+                    `int binarySearch(int arr[], int n, int x) {\n    int l = 0, r = n - 1;\n    while(l <= r) {\n        int m = (l + r) / 2;\n        if(arr[m] == x) return m;\n        if(arr[m] < x) l = m + 1;\n        else r = m - 1;\n    }\n    return -1;\n}`,
+                    `void bubbleSort(int arr[], int n) {\n    for(int i = 0; i < n-1; i++)\n        for(int j = 0; j < n-i-1; j++)\n            if(arr[j] > arr[j+1])\n                std::swap(arr[j], arr[j+1]);\n}`
+                ];
+            }
+
+            // Python code snippets - short functions, max 8 lines
+            getPythonSnippets() {
+                return [
+                    // Easy - simple functions
+                    `def add(a, b):\n    return a + b`,
+                    `def maximum(a, b):\n    return a if a > b else b`,
+                    `def is_even(n):\n    return n % 2 == 0`,
+                    `def square(x):\n    return x * x`,
+                    `def average(a, b):\n    return (a + b) / 2`,
+                    `def absolute(x):\n    return -x if x < 0 else x`,
+                    `def is_positive(n):\n    return n > 0`,
+                    `def minimum(a, b):\n    return a if a < b else b`,
+                    `def greet(name):\n    print(f"Hello, {name}!")`,
+                    `def double(x):\n    return x * 2`,
+                    
+                    // Medium - loops and conditions
+                    `def sum_to_n(n):\n    total = 0\n    for i in range(1, n + 1):\n        total += i\n    return total`,
+                    `def factorial(n):\n    if n <= 1:\n        return 1\n    return n * factorial(n - 1)`,
+                    `def is_prime(n):\n    if n < 2:\n        return False\n    for i in range(2, int(n**0.5) + 1):\n        if n % i == 0:\n            return False\n    return True`,
+                    `def gcd(a, b):\n    while b:\n        a, b = b, a % b\n    return a`,
+                    `def fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)`,
+                    `def count_digits(n):\n    count = 0\n    while n > 0:\n        count += 1\n        n //= 10\n    return count`,
+                    `def power(base, exp):\n    result = 1\n    for _ in range(exp):\n        result *= base\n    return result`,
+                    `def reverse_list(lst):\n    return lst[::-1]`,
+                    `def sum_list(lst):\n    return sum(lst)`,
+                    `def max_in_list(lst):\n    return max(lst)`,
+                    
+                    // List comprehensions and pythonic code
+                    `def squares(n):\n    return [x**2 for x in range(n)]`,
+                    `def evens(lst):\n    return [x for x in lst if x % 2 == 0]`,
+                    `def flatten(nested):\n    return [x for row in nested for x in row]`,
+                    `def unique(lst):\n    return list(set(lst))`,
+                    `def word_count(text):\n    return len(text.split())`,
+                    `def char_freq(s):\n    return {c: s.count(c) for c in set(s)}`,
+                    `def zip_lists(a, b):\n    return list(zip(a, b))`,
+                    `def filter_positive(lst):\n    return list(filter(lambda x: x > 0, lst))`,
+                    `def map_double(lst):\n    return list(map(lambda x: x * 2, lst))`,
+                    `def sorted_desc(lst):\n    return sorted(lst, reverse=True)`,
+                    
+                    // String operations
+                    `def reverse_string(s):\n    return s[::-1]`,
+                    `def is_palindrome(s):\n    return s == s[::-1]`,
+                    `def count_vowels(s):\n    return sum(1 for c in s.lower() if c in 'aeiou')`,
+                    `def capitalize_words(s):\n    return ' '.join(w.capitalize() for w in s.split())`,
+                    `def remove_spaces(s):\n    return s.replace(' ', '')`,
+                    `def first_word(s):\n    return s.split()[0] if s else ''`,
+                    
+                    // Dictionary operations
+                    `def merge_dicts(d1, d2):\n    return {**d1, **d2}`,
+                    `def invert_dict(d):\n    return {v: k for k, v in d.items()}`,
+                    `def filter_dict(d, keys):\n    return {k: d[k] for k in keys if k in d}`,
+                    
+                    // Classes
+                    `class Counter:\n    def __init__(self):\n        self.count = 0\n    def inc(self):\n        self.count += 1`,
+                    `class Point:\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y\n    def distance(self):\n        return (self.x**2 + self.y**2)**0.5`,
+                    `class Stack:\n    def __init__(self):\n        self.items = []\n    def push(self, x):\n        self.items.append(x)\n    def pop(self):\n        return self.items.pop()`,
+                    
+                    // Algorithms
+                    `def binary_search(lst, x):\n    lo, hi = 0, len(lst) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if lst[mid] == x:\n            return mid\n        elif lst[mid] < x:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1`,
+                    `def bubble_sort(lst):\n    n = len(lst)\n    for i in range(n):\n        for j in range(n - i - 1):\n            if lst[j] > lst[j + 1]:\n                lst[j], lst[j + 1] = lst[j + 1], lst[j]`,
+                    `def quick_sort(lst):\n    if len(lst) <= 1:\n        return lst\n    pivot = lst[0]\n    less = [x for x in lst[1:] if x <= pivot]\n    greater = [x for x in lst[1:] if x > pivot]\n    return quick_sort(less) + [pivot] + quick_sort(greater)`,
+                    
+                    // File operations
+                    `def read_file(path):\n    with open(path, 'r') as f:\n        return f.read()`,
+                    `def write_file(path, text):\n    with open(path, 'w') as f:\n        f.write(text)`,
+                    `def count_lines(path):\n    with open(path, 'r') as f:\n        return len(f.readlines())`,
+                    
+                    // Lambda and functional
+                    `add = lambda a, b: a + b`,
+                    `square = lambda x: x ** 2`,
+                    `is_even = lambda n: n % 2 == 0`,
+                    `sort_by_len = lambda lst: sorted(lst, key=len)`,
+                    `def compose(f, g):\n    return lambda x: f(g(x))`
+                ];
+            }
+
+            // Get a code snippet based on difficulty
+            getCodeSnippet(language, difficulty) {
+                const snippets = language === 'cpp' ? this.getCppSnippets() : this.getPythonSnippets();
+                
+                // Sort by length (proxy for difficulty)
+                const sorted = [...snippets].sort((a, b) => a.length - b.length);
+                
+                // Select based on difficulty (0 = shortest/easiest, 1 = longest/hardest)
+                const index = Math.floor(difficulty * (sorted.length - 1));
+                
+                // Add some randomness within a range
+                const range = Math.floor(sorted.length * 0.2);
+                const minIdx = Math.max(0, index - range);
+                const maxIdx = Math.min(sorted.length - 1, index + range);
+                const finalIdx = minIdx + Math.floor(Math.random() * (maxIdx - minIdx + 1));
+                
+                return sorted[finalIdx];
+            }
+
+            // Get a code snippet targeting weak trigrams (hard mode)
+            getHardModeCodeSnippet(language, trigramLearner) {
+                const snippets = language === 'cpp' ? this.getCppSnippets() : this.getPythonSnippets();
+                
+                // Score each snippet by weak trigrams it contains
+                const scored = snippets.map(snippet => {
+                    let score = 0;
+                    const text = snippet.toLowerCase();
+                    
+                    for (let i = 0; i < text.length - 2; i++) {
+                        const trigram = text.substring(i, i + 3);
+                        score += trigramLearner.getTrigramScore(trigram, true);
+                    }
+                    
+                    return { snippet, score: score / Math.max(1, text.length - 2) };
+                });
+                
+                // Sort by score (highest = most weak trigrams)
+                scored.sort((a, b) => b.score - a.score);
+                
+                // Pick from top candidates with some randomness
+                const topN = Math.min(10, scored.length);
+                const idx = Math.floor(Math.random() * topN);
+                
+                return scored[idx].snippet;
+            }
+
+            // Calculate letter-level difficulty for a word
+            getLetterDifficulty(word) {
+                if (word.length < 2) return 0.5;
+
+                let totalProb = 0;
+                let count = 0;
+
+                // Add space-to-first-letter transition
+                const firstPair = ' ' + word[0].toLowerCase();
+                if (this.letterBigrams[firstPair]) {
+                    totalProb += this.letterBigrams[firstPair];
+                } else {
+                    totalProb += 0.01; // Low probability for unseen
+                }
+                count++;
+
+                // Internal letter transitions
+                for (let i = 0; i < word.length - 1; i++) {
+                    const pair = word[i].toLowerCase() + word[i + 1].toLowerCase();
+                    if (this.letterBigrams[pair]) {
+                        totalProb += this.letterBigrams[pair];
+                    } else {
+                        totalProb += 0.01; // Unseen bigrams are difficult
+                    }
+                    count++;
+                }
+
+                // Add last-letter-to-space transition
+                const lastPair = word[word.length - 1].toLowerCase() + ' ';
+                if (this.letterBigrams[lastPair]) {
+                    totalProb += this.letterBigrams[lastPair];
+                } else {
+                    totalProb += 0.01;
+                }
+                count++;
+
+                // Average probability -> difficulty (invert and normalize)
+                const avgProb = totalProb / count;
+                // Higher probability = easier, so invert
+                // Normalize to 0-1 range (prob ranges roughly 0.01 to 1)
+                const difficulty = 1 - Math.min(1, avgProb);
+                return difficulty;
+            }
+
+            // Calculate word-level difficulty based on transitions
+            getWordTransitionDifficulty(words) {
+                if (words.length < 2) return 0.5;
+
+                let score = 0;
+                let count = 0;
+
+                for (let i = 0; i < words.length - 1; i++) {
+                    const currentWord = words[i].toLowerCase();
+                    const nextWord = words[i + 1].toLowerCase();
+
+                    if (this.wordBigrams[currentWord]) {
+                        const followers = this.wordBigrams[currentWord];
+                        if (followers.includes(nextWord)) {
+                            // Common transition
+                            const position = followers.indexOf(nextWord);
+                            score += position / followers.length; // Earlier = more common = easier
+                        } else {
+                            // Uncommon transition
+                            score += 0.9;
+                        }
+                    } else {
+                        // Unknown word - moderate difficulty
+                        score += 0.6;
+                    }
+                    count++;
+                }
+
+                return count > 0 ? score / count : 0.5;
+            }
+
+            // Calculate overall difficulty for a sentence
+            calculateDifficulty(sentence) {
+                const words = sentence.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+                if (words.length === 0) return { total: 0, letter: 0, word: 0 };
+
+                // Letter-level difficulty (average across all words)
+                let letterDiff = 0;
+                for (const word of words) {
+                    letterDiff += this.getLetterDifficulty(word);
+                }
+                letterDiff /= words.length;
+
+                // Word transition difficulty
+                const wordDiff = this.getWordTransitionDifficulty(words);
+
+                // Word rarity (based on position in our word list)
+                let rarityScore = 0;
+                for (const word of words) {
+                    const cleanWord = word.replace(/[^a-z]/g, '');
+                    const index = this.commonWords.indexOf(cleanWord);
+                    if (index === -1) {
+                        rarityScore += 0.8; // Unknown word
+                    } else {
+                        rarityScore += index / this.commonWords.length;
+                    }
+                }
+                rarityScore /= words.length;
+
+                // Combine: 40% letter difficulty, 30% word transitions, 30% word rarity
+                const total = 0.4 * letterDiff + 0.3 * wordDiff + 0.3 * rarityScore;
+
+                return {
+                    total: Math.min(1, Math.max(0, total)),
+                    letter: letterDiff,
+                    word: wordDiff,
+                    rarity: rarityScore
+                };
+            }
+
+            // Generate a sentence at target difficulty
+            generateSentence(targetDifficulty, wordCount = 8) {
+                const attempts = 100;
+                let bestSentence = '';
+                let bestDiffDelta = Infinity;
+
+                for (let attempt = 0; attempt < attempts; attempt++) {
+                    const sentence = this.generateRandomSentence(targetDifficulty, wordCount);
+                    const diff = this.calculateDifficulty(sentence);
+                    const delta = Math.abs(diff.total - targetDifficulty);
+
+                    if (delta < bestDiffDelta) {
+                        bestDiffDelta = delta;
+                        bestSentence = sentence;
+                    }
+
+                    // Good enough match
+                    if (delta < 0.05) break;
+                }
+
+                return bestSentence;
+            }
+
+            // Generate sentence targeting weak trigrams (Hard Mode)
+            generateHardModeSentence(trigramLearner, wordCount = 8) {
+                const explorationRate = trigramLearner.explorationRate;
+                const useExploration = Math.random() < explorationRate;
+                
+                if (useExploration || trigramLearner.data.totalAttempts < 5) {
+                    // Exploration: Generate diverse sentence to discover new weaknesses
+                    return this.generateExploratorySentence(trigramLearner, wordCount);
+                } else {
+                    // Exploitation: Target known weak trigrams
+                    return this.generateExploitationSentence(trigramLearner, wordCount);
+                }
+            }
+
+            generateExploratorySentence(trigramLearner, wordCount) {
+                // Prioritize words with trigrams that haven't been tested much
+                const wordScores = this.commonWords.map(word => {
+                    let noveltyScore = 0;
+                    let count = 0;
+                    const w = word.toLowerCase();
+                    
+                    for (let i = 0; i < w.length - 2; i++) {
+                        const trigram = w.substring(i, i + 3);
+                        const data = trigramLearner.data.trigrams[trigram];
+                        
+                        if (!data || data.attempts === 0) {
+                            noveltyScore += 1; // Never seen
+                        } else {
+                            // Recency bonus - prefer trigrams not seen recently
+                            const hoursSinceLastSeen = (Date.now() - data.lastSeen) / (1000 * 60 * 60);
+                            noveltyScore += Math.min(1, hoursSinceLastSeen / 24) * 0.5;
+                            // Low-attempt bonus
+                            noveltyScore += Math.max(0, (10 - data.attempts) / 10) * 0.5;
+                        }
+                        count++;
+                    }
+                    
+                    return {
+                        word,
+                        score: count > 0 ? noveltyScore / count : 0
+                    };
+                });
+
+                // Sort by novelty score and pick from top candidates with some randomness
+                wordScores.sort((a, b) => b.score - a.score);
+                const topCandidates = wordScores.slice(0, Math.max(50, Math.floor(wordScores.length * 0.3)));
+                
+                const words = [];
+                const usedWords = new Set();
+                
+                while (words.length < wordCount && topCandidates.length > 0) {
+                    const idx = Math.floor(Math.random() * Math.min(20, topCandidates.length));
+                    const candidate = topCandidates[idx];
+                    
+                    if (!usedWords.has(candidate.word)) {
+                        words.push(candidate.word);
+                        usedWords.add(candidate.word);
+                    }
+                    topCandidates.splice(idx, 1);
+                }
+
+                return words.join(' ');
+            }
+
+            generateExploitationSentence(trigramLearner, wordCount) {
+                // Get words containing the weakest trigrams
+                const weakTrigrams = trigramLearner.getWeakestTrigrams(20);
+                const weakTrigramSet = new Set(weakTrigrams.map(t => t.trigram));
+                
+                // Score words by how many weak trigrams they contain
+                const wordScores = this.commonWords.map(word => {
+                    const w = word.toLowerCase();
+                    let weakScore = 0;
+                    let hasWeakTrigram = false;
+                    
+                    for (let i = 0; i < w.length - 2; i++) {
+                        const trigram = w.substring(i, i + 3);
+                        if (weakTrigramSet.has(trigram)) {
+                            const trigramData = weakTrigrams.find(t => t.trigram === trigram);
+                            weakScore += trigramData ? trigramData.errorRate : 0;
+                            hasWeakTrigram = true;
+                        }
+                        // Also add general trigram difficulty
+                        weakScore += trigramLearner.getTrigramScore(trigram) * 0.5;
+                    }
+                    
+                    // Bonus for word-level historical errors
+                    const wordData = trigramLearner.data.words[w];
+                    if (wordData && wordData.attempts > 0) {
+                        weakScore += (wordData.errors / wordData.attempts) * 2;
+                    }
+                    
+                    return {
+                        word,
+                        score: weakScore,
+                        hasWeakTrigram
+                    };
+                });
+
+                // Prioritize words with weak trigrams
+                wordScores.sort((a, b) => b.score - a.score);
+                
+                const words = [];
+                const usedWords = new Set();
+                
+                // Try to include at least some words with known weak trigrams
+                const withWeakTrigrams = wordScores.filter(w => w.hasWeakTrigram);
+                const targetWeakCount = Math.min(Math.ceil(wordCount * 0.6), withWeakTrigrams.length);
+                
+                // Add words with weak trigrams
+                for (let i = 0; i < targetWeakCount && words.length < wordCount; i++) {
+                    const idx = Math.floor(Math.random() * Math.min(10, withWeakTrigrams.length));
+                    const candidate = withWeakTrigrams[idx];
+                    if (candidate && !usedWords.has(candidate.word)) {
+                        words.push(candidate.word);
+                        usedWords.add(candidate.word);
+                        withWeakTrigrams.splice(idx, 1);
+                    }
+                }
+                
+                // Fill remaining with high-difficulty words
+                const remaining = wordScores.filter(w => !usedWords.has(w.word));
+                while (words.length < wordCount && remaining.length > 0) {
+                    const idx = Math.floor(Math.random() * Math.min(15, remaining.length));
+                    words.push(remaining[idx].word);
+                    usedWords.add(remaining[idx].word);
+                    remaining.splice(idx, 1);
+                }
+
+                // Shuffle to make it less predictable
+                for (let i = words.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [words[i], words[j]] = [words[j], words[i]];
+                }
+
+                return words.join(' ');
+            }
+
+            generateRandomSentence(targetDifficulty, wordCount) {
+                const words = [];
+
+                // Determine which word pool to use based on difficulty
+                // Lower difficulty -> earlier words in list (more common)
+                const maxIndex = Math.floor(this.commonWords.length * (0.3 + 0.7 * targetDifficulty));
+                const minIndex = Math.floor(this.commonWords.length * Math.max(0, targetDifficulty - 0.4));
+
+                // Start with a word that can begin sentences
+                const starters = ['the', 'a', 'we', 'they', 'it', 'she', 'he', 'this', 'some', 'each',
+                    'many', 'few', 'all', 'most', 'every', 'consider', 'without', 'between',
+                    'first', 'new', 'how', 'where', 'if', 'when', 'time', 'from'];
+
+                if (targetDifficulty < 0.3) {
+                    words.push(starters[Math.floor(Math.random() * 10)]);
+                } else if (targetDifficulty < 0.6) {
+                    words.push(starters[Math.floor(Math.random() * 20)]);
+                } else {
+                    words.push(starters[Math.floor(Math.random() * starters.length)]);
+                }
+
+                // Generate remaining words
+                while (words.length < wordCount) {
+                    const lastWord = words[words.length - 1].toLowerCase();
+
+                    // Try to use word bigrams for natural flow (with some randomness based on difficulty)
+                    if (this.wordBigrams[lastWord] && Math.random() > targetDifficulty * 0.5) {
+                        const followers = this.wordBigrams[lastWord];
+                        // Pick based on difficulty - higher difficulty = more random selection
+                        const pickIndex = Math.floor(Math.random() * Math.min(followers.length, 3 + Math.floor(targetDifficulty * 17)));
+                        words.push(followers[pickIndex]);
+                    } else {
+                        // Pick random word from appropriate difficulty range
+                        const range = maxIndex - minIndex;
+                        const index = minIndex + Math.floor(Math.random() * range);
+                        words.push(this.commonWords[Math.min(index, this.commonWords.length - 1)]);
+                    }
+                }
+
+                return words.join(' ');
+            }
+        }
+
+        // ============================================
+        // TYPING TEST APPLICATION
+        // ============================================
+
+        class TypingTest {
+            constructor() {
+                this.markov = new MarkovModel();
+                this.tracker = new ResultsTracker();
+                this.trigramLearner = new TrigramLearner();
+                this.audioEngine = new AudioEngine();
+                this.state = 'waiting'; // waiting, running, complete
+                this.targetText = '';
+                this.currentIndex = 0;
+                this.startTime = null;
+                this.endTime = null;
+                this.errors = 0;
+                this.totalKeystrokes = 0;
+                this.errorPositions = [];
+                this.timerInterval = null;
+                this.hardMode = false;
+                this.audioEnabled = false;
+                this.currentMode = 'english'; // english, cpp, python
+
+                this.initElements();
+                this.bindEvents();
+                this.generateNewSentence();
+                
+                // Initial UI updates
+                this.tracker.updateUI(this.currentMode);
+                this.updateHardModeStats();
+            }
+
+            initElements() {
+                this.difficultySlider = document.getElementById('difficultySlider');
+                this.difficultyValue = document.getElementById('difficultyValue');
+                this.generateBtn = document.getElementById('generateBtn');
+                this.textDisplay = document.getElementById('textDisplay');
+                this.progressFill = document.getElementById('progressFill');
+                this.wpmStat = document.getElementById('wpmStat');
+                this.accuracyStat = document.getElementById('accuracyStat');
+                this.progressStat = document.getElementById('progressStat');
+                this.timeStat = document.getElementById('timeStat');
+                this.instructions = document.getElementById('instructions');
+                this.resultsPanel = document.getElementById('resultsPanel');
+                this.hiddenInput = document.getElementById('hiddenInput');
+                this.app = document.getElementById('app');
+                this.hardModeCheckbox = document.getElementById('hardModeCheckbox');
+                this.hardModeInfo = document.getElementById('hardModeInfo');
+                this.audioCheckbox = document.getElementById('audioCheckbox');
+                this.modeSelect = document.getElementById('modeSelect');
+                this.languageIndicator = document.getElementById('languageIndicator');
+            }
+
+            bindEvents() {
+                this.difficultySlider.addEventListener('input', () => {
+                    this.difficultyValue.textContent = (this.difficultySlider.value / 100).toFixed(2);
+                });
+
+                this.generateBtn.addEventListener('click', () => {
+                    this.generateNewSentence();
+                });
+
+                this.textDisplay.addEventListener('click', () => {
+                    if (this.state === 'waiting') {
+                        this.focusInput();
+                    }
+                });
+
+                this.hiddenInput.addEventListener('input', (e) => {
+                    this.handleInput(e);
+                });
+
+                this.hiddenInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace') {
+                        e.preventDefault(); // Prevent backspace - no corrections allowed
+                    }
+                    
+                    // Handle Enter key for newlines in code
+                    if (e.key === 'Enter' && this.state === 'running') {
+                        e.preventDefault();
+                        this.handleKeyPress('\n');
+                    }
+                    
+                    // Handle Tab key for indentation in code - always 4 spaces
+                    if (e.key === 'Tab') {
+                        e.preventDefault();
+                        if (this.state === 'running' || this.state === 'waiting') {
+                            // Tab = 4 spaces
+                            for (let i = 0; i < 4; i++) {
+                                const expectedChar = this.targetText[this.currentIndex];
+                                if (expectedChar === ' ') {
+                                    this.handleKeyPress(' ');
+                                } else {
+                                    break; // Stop if we've run out of spaces to type
+                                }
+                            }
+                        }
+                    }
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    // Prevent Tab from changing focus globally when in typing mode
+                    if (e.key === 'Tab' && (this.state === 'running' || this.state === 'waiting')) {
+                        e.preventDefault();
+                        // If input isn't focused, focus it and handle the tab
+                        if (document.activeElement !== this.hiddenInput) {
+                            this.hiddenInput.focus();
+                        }
+                    }
+                    
+                    // Only generate new sentence on Enter if not currently running
+                    if (e.key === 'Enter' && (this.state === 'waiting' || this.state === 'complete')) {
+                        e.preventDefault();
+                        this.generateNewSentence();
+                    }
+                    if (e.key === 'Escape' && this.state === 'running') {
+                        this.reset();
+                    }
+                    
+                    // Auto-focus input when user starts typing (if in waiting state)
+                    if (this.state === 'waiting' && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                        this.hiddenInput.focus();
+                    }
+                });
+
+                // Mode selection
+                this.modeSelect?.addEventListener('change', (e) => {
+                    this.currentMode = e.target.value;
+                    this.updateLanguageIndicator();
+                    this.updateStatsDisplay();
+                    this.generateNewSentence();
+                    this.tracker.updateUI(this.currentMode);
+                });
+
+                // Hard mode toggle
+                this.hardModeCheckbox?.addEventListener('change', (e) => {
+                    this.hardMode = e.target.checked;
+                    this.hardModeInfo.style.display = this.hardMode ? 'block' : 'none';
+                    this.generateNewSentence();
+                });
+
+                // Audio toggle
+                this.audioCheckbox?.addEventListener('change', (e) => {
+                    this.audioEnabled = e.target.checked;
+                    if (this.audioEnabled) {
+                        this.audioEngine.enable();
+                        // Play a test tone to confirm audio is working
+                        this.audioEngine.playTone(0.3, true);
+                    } else {
+                        this.audioEngine.disable();
+                    }
+                });
+
+                // History controls
+                document.getElementById('exportBtn')?.addEventListener('click', () => {
+                    this.tracker.exportCSV();
+                });
+
+                document.getElementById('clearBtn')?.addEventListener('click', () => {
+                    if (confirm('Are you sure you want to clear all test history? This cannot be undone.')) {
+                        this.tracker.clearResults();
+                        this.trigramLearner.clearData();
+                        this.updateHardModeStats();
+                    }
+                });
+            }
+
+            updateStatsDisplay() {
+                const isCode = this.currentMode === 'cpp' || this.currentMode === 'python';
+                const cpmContainer = document.getElementById('cpmStatContainer');
+                const wpmLabel = document.getElementById('wpmLabel');
+                const wordColorLegend = document.getElementById('wordColorLegend');
+                
+                if (isCode) {
+                    cpmContainer.style.display = 'block';
+                    wpmLabel.textContent = 'WPM*';
+                    wpmLabel.title = 'WPM = Characters / 5 / Minutes (standard typing test formula)';
+                    wordColorLegend.style.display = 'none';
+                } else {
+                    cpmContainer.style.display = 'none';
+                    wpmLabel.textContent = 'WPM';
+                    wpmLabel.title = '';
+                    wordColorLegend.style.display = 'flex';
+                }
+            }
+
+            updateLanguageIndicator() {
+                const labels = {
+                    'english': 'english',
+                    'cpp': 'c++',
+                    'python': 'python'
+                };
+                this.languageIndicator.textContent = labels[this.currentMode] || this.currentMode;
+            }
+
+            updateHardModeStats() {
+                const stats = this.trigramLearner.getStats();
+                document.getElementById('trigramsLearned').textContent = stats.trigramCount;
+                
+                const weakestEl = document.getElementById('weakestTrigram');
+                if (stats.weakestTrigram !== '---') {
+                    weakestEl.textContent = `"${stats.weakestTrigram}" (${stats.weakestRate})`;
+                } else {
+                    weakestEl.textContent = '---';
+                }
+                
+                // Update exploration rate display
+                const explorationPercent = Math.round(this.trigramLearner.explorationRate * 100);
+                document.getElementById('explorationRate').textContent = explorationPercent + '%';
+            }
+
+            generateNewSentence() {
+                const difficulty = this.difficultySlider.value / 100;
+                
+                if (this.currentMode === 'english') {
+                    const wordCount = 6 + Math.floor(Math.random() * 5) + Math.floor(difficulty * 4);
+                    
+                    if (this.hardMode) {
+                        this.targetText = this.markov.generateHardModeSentence(this.trigramLearner, wordCount);
+                    } else {
+                        this.targetText = this.markov.generateSentence(difficulty, wordCount);
+                    }
+                } else {
+                    // Code mode (cpp or python)
+                    if (this.hardMode) {
+                        this.targetText = this.markov.getHardModeCodeSnippet(this.currentMode, this.trigramLearner);
+                    } else {
+                        this.targetText = this.markov.getCodeSnippet(this.currentMode, difficulty);
+                    }
+                }
+                
+                this.reset();
+                this.renderText();
+                
+                // Auto-focus the input so user can start typing immediately
+                this.hiddenInput.focus();
+            }
+
+            reset() {
+                this.state = 'waiting';
+                this.currentIndex = 0;
+                this.startTime = null;
+                this.endTime = null;
+                this.errors = 0;
+                this.totalKeystrokes = 0;
+                this.errorPositions = [];
+
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+                }
+
+                this.hiddenInput.value = '';
+                this.progressFill.style.width = '0%';
+                this.wpmStat.textContent = '0';
+                this.accuracyStat.textContent = '100%';
+                this.progressStat.textContent = '0%';
+                this.timeStat.textContent = '0.0s';
+                this.instructions.textContent = 'Start typing to begin...';
+                this.resultsPanel.classList.remove('visible');
+                this.app.className = 'container state-waiting';
+                
+                // Keep input focused
+                this.hiddenInput.focus();
+            }
+
+            renderText() {
+                this.textDisplay.innerHTML = '';
+                
+                // Apply code mode styling
+                const isCode = this.currentMode === 'cpp' || this.currentMode === 'python';
+                if (isCode) {
+                    this.textDisplay.classList.add('code-mode');
+                } else {
+                    this.textDisplay.classList.remove('code-mode');
+                }
+
+                if (isCode) {
+                    // For code: render line by line
+                    const lines = this.targetText.split('\n');
+                    let charIndex = 0;
+                    
+                    lines.forEach((line, lineIndex) => {
+                        const lineDiv = document.createElement('div');
+                        lineDiv.className = 'code-line';
+                        
+                        // Track if we're still in leading whitespace
+                        let inIndent = true;
+                        
+                        // Add each character in the line
+                        for (let i = 0; i < line.length; i++) {
+                            const char = line[i];
+                            const span = document.createElement('span');
+                            span.dataset.index = charIndex;
+                            
+                            if (char === ' ' && inIndent) {
+                                // Leading space - show as dot
+                                span.className = 'char indent-space';
+                                span.textContent = ' ';
+                            } else if (char === '\t') {
+                                span.className = 'char tab-char';
+                                span.textContent = '\t';
+                            } else {
+                                span.className = 'char';
+                                span.textContent = char;
+                                if (char !== ' ') {
+                                    inIndent = false;
+                                }
+                            }
+                            
+                            if (charIndex === 0 && this.state === 'waiting') {
+                                span.classList.add('current');
+                            }
+                            
+                            lineDiv.appendChild(span);
+                            charIndex++;
+                        }
+                        
+                        // Add newline character at end of line (except last line)
+                        if (lineIndex < lines.length - 1) {
+                            const newlineSpan = document.createElement('span');
+                            newlineSpan.className = 'char newline-char';
+                            newlineSpan.textContent = '↵';
+                            newlineSpan.dataset.index = charIndex;
+                            
+                            if (charIndex === 0 && this.state === 'waiting') {
+                                newlineSpan.classList.add('current');
+                            }
+                            
+                            lineDiv.appendChild(newlineSpan);
+                            charIndex++;
+                        }
+                        
+                        this.textDisplay.appendChild(lineDiv);
+                    });
+                } else {
+                    // For English: colorize words by error rate
+                    const words = this.targetText.split(/(\s+)/); // Split but keep spaces
+                    let charIndex = 0;
+                    
+                    words.forEach(word => {
+                        // Get color for this word based on error history
+                        const wordColor = this.trigramLearner.getWordColor(word);
+                        
+                        for (let i = 0; i < word.length; i++) {
+                            const span = document.createElement('span');
+                            span.className = 'char';
+                            span.textContent = word[i];
+                            span.dataset.index = charIndex;
+                            
+                            // Apply error-based coloring to non-space characters
+                            if (wordColor && word.trim().length > 0) {
+                                span.style.color = wordColor;
+                                span.classList.add('error-colored');
+                            }
+
+                            if (charIndex === 0 && this.state === 'waiting') {
+                                span.classList.add('current');
+                            }
+
+                            this.textDisplay.appendChild(span);
+                            charIndex++;
+                        }
+                    });
+                }
+            }
+
+            focusInput() {
+                this.hiddenInput.focus();
+            }
+
+            // Handle special key presses (like Enter for newlines)
+            handleKeyPress(char) {
+                // Start timer on first keystroke
+                if (this.state === 'waiting') {
+                    this.state = 'running';
+                    this.startTime = Date.now();
+                    this.app.className = 'container state-running';
+                    this.instructions.textContent = 'Keep typing... (Esc to reset)';
+                    this.startTimer();
+                }
+
+                if (this.state !== 'running') return;
+
+                this.totalKeystrokes++;
+
+                const expectedChar = this.targetText[this.currentIndex];
+                const charElements = this.textDisplay.querySelectorAll('.char');
+
+                // Remove current highlight
+                charElements.forEach(el => el.classList.remove('current'));
+
+                const isCorrect = (char === expectedChar);
+                
+                if (isCorrect) {
+                    // Correct
+                    charElements[this.currentIndex].classList.add('correct');
+                } else {
+                    // Incorrect
+                    charElements[this.currentIndex].classList.add('incorrect');
+                    this.errors++;
+                    this.errorPositions.push(this.currentIndex);
+                }
+
+                // Play audio feedback based on trigram difficulty
+                if (this.audioEnabled) {
+                    const trigramDifficulty = this.getTrigramDifficultyAtPosition(this.currentIndex);
+                    this.audioEngine.playTone(trigramDifficulty, isCorrect);
+                }
+
+                this.currentIndex++;
+
+                // Update stats
+                this.updateStats();
+
+                // Check completion
+                if (this.currentIndex >= this.targetText.length) {
+                    this.complete();
+                } else {
+                    // Highlight next character
+                    charElements[this.currentIndex].classList.add('current');
+                }
+            }
+
+            // Get trigram difficulty at a given position in the text
+            getTrigramDifficultyAtPosition(position) {
+                const text = this.targetText.toLowerCase();
+                
+                // Get the trigram centered around or near this position
+                let start = Math.max(0, position - 1);
+                let end = Math.min(text.length, start + 3);
+                
+                if (end - start < 3 && start > 0) {
+                    start = Math.max(0, end - 3);
+                }
+                
+                const trigram = text.substring(start, end);
+                
+                if (trigram.length < 3) {
+                    return 0.5; // Default middle difficulty
+                }
+                
+                // Get difficulty from trigram learner (based on your error history)
+                const learnedDifficulty = this.trigramLearner.getTrigramScore(trigram);
+                
+                // Also factor in the inherent letter-bigram difficulty
+                const markovDifficulty = this.markov.getLetterDifficulty(trigram);
+                
+                // Blend both: 60% learned difficulty, 40% inherent difficulty
+                return learnedDifficulty * 0.6 + markovDifficulty * 0.4;
+            }
+
+            handleInput(e) {
+                const inputValue = e.target.value;
+                const lastChar = inputValue[inputValue.length - 1];
+
+                if (!lastChar) return;
+
+                // Start timer on first keystroke
+                if (this.state === 'waiting') {
+                    this.state = 'running';
+                    this.startTime = Date.now();
+                    this.app.className = 'container state-running';
+                    this.instructions.textContent = 'Keep typing... (Esc to reset)';
+                    this.startTimer();
+                }
+
+                if (this.state !== 'running') return;
+
+                this.totalKeystrokes++;
+
+                const expectedChar = this.targetText[this.currentIndex];
+                const charElements = this.textDisplay.querySelectorAll('.char');
+
+                // Remove current highlight
+                charElements.forEach(el => el.classList.remove('current'));
+
+                const isCorrect = (lastChar === expectedChar);
+                
+                if (isCorrect) {
+                    // Correct
+                    charElements[this.currentIndex].classList.add('correct');
+                } else {
+                    // Incorrect
+                    charElements[this.currentIndex].classList.add('incorrect');
+                    this.errors++;
+                    this.errorPositions.push(this.currentIndex);
+                }
+
+                // Play audio feedback based on trigram difficulty
+                if (this.audioEnabled) {
+                    const trigramDifficulty = this.getTrigramDifficultyAtPosition(this.currentIndex);
+                    this.audioEngine.playTone(trigramDifficulty, isCorrect);
+                }
+
+                this.currentIndex++;
+
+                // Update stats
+                this.updateStats();
+
+                // Check completion
+                if (this.currentIndex >= this.targetText.length) {
+                    this.complete();
+                } else {
+                    // Highlight next character
+                    charElements[this.currentIndex].classList.add('current');
+                }
+
+                // Clear input to prevent buildup
+                this.hiddenInput.value = '';
+            }
+
+            startTimer() {
+                this.timerInterval = setInterval(() => {
+                    if (this.state === 'running') {
+                        const elapsed = (Date.now() - this.startTime) / 1000;
+                        this.timeStat.textContent = elapsed.toFixed(1) + 's';
+
+                        // Update WPM and CPM in real-time
+                        if (elapsed > 0) {
+                            const charsTyped = this.currentIndex;
+                            const cpm = Math.round((charsTyped / elapsed) * 60);
+                            const wpm = Math.round(cpm / 5); // Standard: 5 chars = 1 word
+                            
+                            this.wpmStat.textContent = wpm;
+                            
+                            // Show CPM for code modes
+                            if (this.currentMode === 'cpp' || this.currentMode === 'python') {
+                                document.getElementById('cpmStat').textContent = cpm;
+                            }
+                        }
+                    }
+                }, 100);
+            }
+
+            updateStats() {
+                const progress = (this.currentIndex / this.targetText.length) * 100;
+                this.progressFill.style.width = progress + '%';
+                this.progressStat.textContent = Math.round(progress) + '%';
+
+                const accuracy = this.totalKeystrokes > 0
+                    ? ((this.totalKeystrokes - this.errors) / this.totalKeystrokes) * 100
+                    : 100;
+                this.accuracyStat.textContent = Math.round(accuracy) + '%';
+            }
+
+            complete() {
+                this.state = 'complete';
+                this.endTime = Date.now();
+                this.app.className = 'container state-complete';
+
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                }
+
+                // Play completion sound
+                if (this.audioEnabled) {
+                    this.audioEngine.playComplete();
+                }
+
+                const elapsed = (this.endTime - this.startTime) / 1000;
+                const wordsTyped = this.targetText.length / 5;
+                const wpm = Math.round((wordsTyped / elapsed) * 60);
+                const cpm = Math.round((this.targetText.length / elapsed) * 60);
+                const accuracy = ((this.totalKeystrokes - this.errors) / this.totalKeystrokes) * 100;
+
+                // Calculate actual difficulty
+                const difficultyInfo = this.markov.calculateDifficulty(this.targetText);
+
+                // Record trigram data for learning
+                this.trigramLearner.recordResults(this.targetText, this.errorPositions);
+                this.updateHardModeStats();
+
+                // Save result to tracker (include hard mode flag and mode)
+                this.tracker.addResult({
+                    difficulty: difficultyInfo.total,
+                    wpm: wpm,
+                    accuracy: accuracy,
+                    time: elapsed,
+                    errors: this.errors,
+                    chars: this.targetText.length,
+                    cpm: cpm,
+                    letterDifficulty: difficultyInfo.letter,
+                    wordDifficulty: difficultyInfo.word,
+                    rarityDifficulty: difficultyInfo.rarity,
+                    hardMode: this.hardMode,
+                    mode: this.currentMode
+                });
+
+                // Refresh charts filtered by current mode
+                this.tracker.updateUI(this.currentMode);
+
+                // Update final stats
+                document.getElementById('finalWpm').textContent = wpm;
+                document.getElementById('finalAccuracy').textContent = Math.round(accuracy) + '%';
+                document.getElementById('finalTime').textContent = elapsed.toFixed(2) + 's';
+                document.getElementById('finalErrors').textContent = this.errors;
+                document.getElementById('finalChars').textContent = this.targetText.length;
+                document.getElementById('finalCpm').textContent = cpm;
+
+                // Update WPM label based on mode
+                const isCode = this.currentMode === 'cpp' || this.currentMode === 'python';
+                const wpmLabel = document.getElementById('finalWpmLabel');
+                wpmLabel.textContent = isCode ? 'WPM*' : 'Words/Min';
+                wpmLabel.title = isCode ? 'WPM = CPM / 5 (standard typing test formula)' : '';
+
+                const modeIndicator = this.hardMode ? '<span style="color: #f87171;">🎯 HARD MODE</span> | ' : '';
+                const modeNames = { english: 'English', cpp: 'C++', python: 'Python' };
+                const wpmNote = isCode ? `<br><small style="color: #666;">*WPM calculated as CPM ÷ 5 (standard formula)</small>` : '';
+                
+                document.getElementById('difficultyInfo').innerHTML = `
+                    ${modeIndicator}<strong>${modeNames[this.currentMode]} - Difficulty Analysis:</strong><br>
+                    Overall: ${(difficultyInfo.total * 100).toFixed(1)}% | 
+                    Letter patterns: ${(difficultyInfo.letter * 100).toFixed(1)}% | 
+                    Word transitions: ${(difficultyInfo.word * 100).toFixed(1)}% | 
+                    Word rarity: ${(difficultyInfo.rarity * 100).toFixed(1)}%
+                    ${wpmNote}
+                `;
+
+                this.resultsPanel.classList.add('visible');
+                this.instructions.textContent = 'Press Enter or click Generate for a new test';
+            }
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            new TypingTest();
+        });
+
+        // ============================================
+        // RESULTS HISTORY & CHARTS
+        // ============================================
+
+        class ResultsTracker {
+            constructor() {
+                this.storageKey = 'typingTestResults';
+                this.results = this.loadResults();
+            }
+
+            loadResults() {
+                try {
+                    const stored = localStorage.getItem(this.storageKey);
+                    return stored ? JSON.parse(stored) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            saveResults() {
+                try {
+                    localStorage.setItem(this.storageKey, JSON.stringify(this.results));
+                } catch (e) {
+                    console.warn('Could not save results to localStorage');
+                }
+            }
+
+            addResult(result) {
+                this.results.push({
+                    ...result,
+                    id: Date.now(),
+                    timestamp: new Date().toISOString()
+                });
+                this.saveResults();
+                this.updateUI();
+            }
+
+            clearResults() {
+                this.results = [];
+                this.saveResults();
+                this.updateUI();
+            }
+
+            getResults() {
+                return this.results;
+            }
+
+            getFilteredResults(mode) {
+                if (!mode) return this.results;
+                return this.results.filter(r => r.mode === mode);
+            }
+
+            updateUI(mode) {
+                this.currentFilterMode = mode;
+                this.renderCharts(mode);
+                this.renderSummary(mode);
+                this.renderHistory(mode);
+            }
+
+            renderCharts(mode) {
+                this.renderWpmChart(mode);
+                this.renderAccuracyChart(mode);
+            }
+
+            renderWpmChart(mode) {
+                const chart = document.getElementById('wpmChart');
+                if (!chart) return;
+
+                // Clear existing points and lines
+                chart.querySelectorAll('.chart-point, .trend-line, .y-axis-label, .x-axis-label').forEach(el => el.remove());
+
+                const filteredResults = this.getFilteredResults(mode);
+                
+                if (filteredResults.length === 0) {
+                    return;
+                }
+
+                const chartWidth = chart.offsetWidth;
+                const chartHeight = chart.offsetHeight;
+
+                // Calculate ranges
+                const wpmValues = filteredResults.map(r => r.wpm);
+                const maxWpm = Math.max(...wpmValues, 100);
+                const minWpm = 0;
+
+                // Add axis labels
+                for (let i = 0; i <= 4; i++) {
+                    const label = document.createElement('span');
+                    label.className = 'y-axis-label';
+                    label.style.bottom = (i * 25) + '%';
+                    label.textContent = Math.round(minWpm + (maxWpm - minWpm) * (i / 4));
+                    chart.appendChild(label);
+                }
+
+                for (let i = 0; i <= 4; i++) {
+                    const label = document.createElement('span');
+                    label.className = 'x-axis-label';
+                    label.style.left = (i * 25) + '%';
+                    label.textContent = (i * 0.25).toFixed(2);
+                    chart.appendChild(label);
+                }
+
+                // Plot points
+                filteredResults.forEach((result, index) => {
+                    const x = (result.difficulty * 100);
+                    const y = ((result.wpm - minWpm) / (maxWpm - minWpm)) * 100;
+
+                    const point = document.createElement('div');
+                    point.className = 'chart-point wpm' + (result.hardMode ? ' hard-mode' : '');
+                    point.style.left = x + '%';
+                    point.style.bottom = y + '%';
+                    point.title = `WPM: ${result.wpm}, Difficulty: ${result.difficulty.toFixed(2)}${result.hardMode ? ' (Hard Mode)' : ''}`;
+                    
+                    point.addEventListener('mouseenter', (e) => this.showTooltip(e, result, 'wpm'));
+                    point.addEventListener('mouseleave', () => this.hideTooltip());
+                    
+                    chart.appendChild(point);
+                });
+
+                // Add trend line
+                this.addTrendLine(chart, filteredResults.map(r => ({ x: r.difficulty, y: r.wpm })), maxWpm, 'wpm');
+            }
+
+            renderAccuracyChart(mode) {
+                const chart = document.getElementById('accuracyChart');
+                if (!chart) return;
+
+                // Clear existing points
+                chart.querySelectorAll('.chart-point, .trend-line, .y-axis-label, .x-axis-label').forEach(el => el.remove());
+
+                const filteredResults = this.getFilteredResults(mode);
+                
+                if (filteredResults.length === 0) {
+                    return;
+                }
+
+                const chartWidth = chart.offsetWidth;
+                const chartHeight = chart.offsetHeight;
+
+                // Accuracy is always 0-100
+                const maxAccuracy = 100;
+                const minAccuracy = 0;
+
+                // Add axis labels
+                for (let i = 0; i <= 4; i++) {
+                    const label = document.createElement('span');
+                    label.className = 'y-axis-label';
+                    label.style.bottom = (i * 25) + '%';
+                    label.textContent = (i * 25) + '%';
+                    chart.appendChild(label);
+                }
+
+                for (let i = 0; i <= 4; i++) {
+                    const label = document.createElement('span');
+                    label.className = 'x-axis-label';
+                    label.style.left = (i * 25) + '%';
+                    label.textContent = (i * 0.25).toFixed(2);
+                    chart.appendChild(label);
+                }
+
+                // Plot points
+                filteredResults.forEach((result, index) => {
+                    const x = (result.difficulty * 100);
+                    const y = result.accuracy;
+
+                    const point = document.createElement('div');
+                    point.className = 'chart-point accuracy' + (result.hardMode ? ' hard-mode' : '');
+                    point.style.left = x + '%';
+                    point.style.bottom = y + '%';
+                    point.title = `Accuracy: ${result.accuracy.toFixed(1)}%, Difficulty: ${result.difficulty.toFixed(2)}${result.hardMode ? ' (Hard Mode)' : ''}`;
+                    
+                    point.addEventListener('mouseenter', (e) => this.showTooltip(e, result, 'accuracy'));
+                    point.addEventListener('mouseleave', () => this.hideTooltip());
+                    
+                    chart.appendChild(point);
+                });
+
+                // Add trend line
+                this.addTrendLine(chart, filteredResults.map(r => ({ x: r.difficulty, y: r.accuracy })), 100, 'accuracy');
+            }
+
+            addTrendLine(chart, points, maxY, type) {
+                if (points.length < 2) return;
+
+                // Simple linear regression
+                const n = points.length;
+                const sumX = points.reduce((s, p) => s + p.x, 0);
+                const sumY = points.reduce((s, p) => s + p.y, 0);
+                const sumXY = points.reduce((s, p) => s + p.x * p.y, 0);
+                const sumXX = points.reduce((s, p) => s + p.x * p.x, 0);
+
+                const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+                const intercept = (sumY - slope * sumX) / n;
+
+                // Calculate line endpoints (x from 0 to 1)
+                const y0 = intercept;
+                const y1 = slope + intercept;
+
+                // Convert to percentages
+                const startY = (y0 / maxY) * 100;
+                const endY = (y1 / maxY) * 100;
+
+                // Create line using a div with rotation
+                const line = document.createElement('div');
+                line.className = `trend-line ${type}`;
+                
+                const length = Math.sqrt(100 * 100 + (endY - startY) * (endY - startY));
+                const angle = Math.atan2(endY - startY, 100) * (180 / Math.PI);
+
+                line.style.width = length + '%';
+                line.style.left = '0';
+                line.style.bottom = Math.max(0, Math.min(100, startY)) + '%';
+                line.style.transform = `rotate(${-angle}deg)`;
+
+                chart.appendChild(line);
+            }
+
+            showTooltip(event, result, type) {
+                let tooltip = document.getElementById('chartTooltip');
+                if (!tooltip) {
+                    tooltip = document.createElement('div');
+                    tooltip.id = 'chartTooltip';
+                    tooltip.className = 'chart-tooltip';
+                    document.body.appendChild(tooltip);
+                }
+
+                const date = new Date(result.timestamp).toLocaleDateString();
+                const modeLabel = result.hardMode ? '<span style="color: #f87171;">🎯 Hard Mode</span><br>' : '';
+                const modeNames = { english: 'English', cpp: 'C++', python: 'Python' };
+                const modeName = modeNames[result.mode] || result.mode || 'English';
+                
+                tooltip.innerHTML = `
+                    <strong>Test #${this.getFilteredResults(this.currentFilterMode).indexOf(result) + 1}</strong><br>
+                    ${modeLabel}
+                    Mode: ${modeName}<br>
+                    Difficulty: ${result.difficulty.toFixed(3)}<br>
+                    WPM: ${result.wpm}<br>
+                    Accuracy: ${result.accuracy.toFixed(1)}%<br>
+                    Time: ${result.time.toFixed(2)}s<br>
+                    Date: ${date}
+                `;
+
+                tooltip.style.display = 'block';
+                tooltip.style.left = (event.pageX + 15) + 'px';
+                tooltip.style.top = (event.pageY - 10) + 'px';
+            }
+
+            hideTooltip() {
+                const tooltip = document.getElementById('chartTooltip');
+                if (tooltip) {
+                    tooltip.style.display = 'none';
+                }
+            }
+
+            renderSummary(mode) {
+                const filteredResults = this.getFilteredResults(mode);
+                
+                if (filteredResults.length === 0) {
+                    document.getElementById('totalTests').textContent = '0';
+                    document.getElementById('avgWpm').textContent = '0';
+                    document.getElementById('avgAccuracy').textContent = '0%';
+                    document.getElementById('bestWpm').textContent = '0';
+                    document.getElementById('avgDifficulty').textContent = '0.00';
+                    document.getElementById('totalTime').textContent = '0s';
+                    return;
+                }
+
+                const totalTests = filteredResults.length;
+                const avgWpm = Math.round(filteredResults.reduce((s, r) => s + r.wpm, 0) / totalTests);
+                const avgAccuracy = (filteredResults.reduce((s, r) => s + r.accuracy, 0) / totalTests).toFixed(1);
+                const bestWpm = Math.max(...filteredResults.map(r => r.wpm));
+                const avgDifficulty = (filteredResults.reduce((s, r) => s + r.difficulty, 0) / totalTests).toFixed(2);
+                const totalTime = filteredResults.reduce((s, r) => s + r.time, 0).toFixed(1);
+
+                document.getElementById('totalTests').textContent = totalTests;
+                document.getElementById('avgWpm').textContent = avgWpm;
+                document.getElementById('avgAccuracy').textContent = avgAccuracy + '%';
+                document.getElementById('bestWpm').textContent = bestWpm;
+                document.getElementById('avgDifficulty').textContent = avgDifficulty;
+                document.getElementById('totalTime').textContent = totalTime + 's';
+            }
+
+            renderHistory(mode) {
+                const tbody = document.getElementById('historyBody');
+                if (!tbody) return;
+
+                tbody.innerHTML = '';
+
+                const filteredResults = this.getFilteredResults(mode);
+                
+                if (filteredResults.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="8" class="no-data">No test results yet for this mode. Complete a test to see your history.</td>';
+                    tbody.appendChild(row);
+                    return;
+                }
+
+                // Show most recent first
+                [...filteredResults].reverse().forEach((result, index) => {
+                    const row = document.createElement('tr');
+                    const date = new Date(result.timestamp);
+                    const modeIcon = result.hardMode ? '<span style="color: #f87171;">🎯</span>' : '—';
+                    row.innerHTML = `
+                        <td>${filteredResults.length - index}</td>
+                        <td>${modeIcon}</td>
+                        <td>${result.difficulty.toFixed(3)}</td>
+                        <td>${result.wpm}</td>
+                        <td>${result.accuracy.toFixed(1)}%</td>
+                        <td>${result.time.toFixed(2)}s</td>
+                        <td>${result.errors}</td>
+                        <td>${date.toLocaleDateString()} ${date.toLocaleTimeString()}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            exportCSV() {
+                if (this.results.length === 0) {
+                    alert('No data to export');
+                    return;
+                }
+
+                const headers = ['Test #', 'Difficulty', 'WPM', 'Accuracy %', 'Time (s)', 'Errors', 'Characters', 'Timestamp'];
+                const rows = this.results.map((r, i) => [
+                    i + 1,
+                    r.difficulty.toFixed(4),
+                    r.wpm,
+                    r.accuracy.toFixed(2),
+                    r.time.toFixed(2),
+                    r.errors,
+                    r.chars,
+                    r.timestamp
+                ]);
+
+                const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `typing-test-results-${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+
+                URL.revokeObjectURL(url);
+            }
+        }
+    </script>
+</body>
+</html>
